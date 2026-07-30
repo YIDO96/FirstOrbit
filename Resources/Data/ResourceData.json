@@ -1,0 +1,20 @@
+ {
+    "TileWorld": 
+    {
+
+    },
+    "MainWorld":
+    {
+        "BG":{"fileName":"SpaceBG.bmp"},
+        "BG1":{"fileName":"SpaceBG1.bmp"},
+        "BG2":{"fileName":"SpaceBG2.bmp"}
+    },
+    "Sound":
+    {
+        "B_Bauns":{ "fileName":"B_Bauns.wav"},
+        "Bauns":{ "fileName":"Bauns.wav"},
+        "DeadS":{ "fileName":"DeadS.wav"},
+        "Select":{ "fileName":"Select.wav"},
+        "Star":{ "fileName":"Star.wav"}
+    }
+}

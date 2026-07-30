@@ -1,0 +1,305 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="00. Main">
+      <UniqueIdentifier>{6a6a240f-11f0-4e24-9365-3a1e8dd620f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Core">
+      <UniqueIdentifier>{4417c632-9661-4f91-94c8-f44fd19c5da2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameFramework">
+      <UniqueIdentifier>{dde86735-a089-440b-bff8-e108305031f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="10. Worlds">
+      <UniqueIdentifier>{5c58d948-e2e7-4a29-9f52-206eaf933903}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="97. Json">
+      <UniqueIdentifier>{4dc5e463-b105-4d81-b8e9-44d32d0dc2cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. ImGui">
+      <UniqueIdentifier>{18eeeb00-fa5e-4440-9108-75f49bae9aac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Header">
+      <UniqueIdentifier>{382b71cb-8bb2-4088-b047-aa7874cd9e0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameFramework\Components">
+      <UniqueIdentifier>{54230144-a573-405d-a71c-ccac3d16d1de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="97. Json\nlohmann">
+      <UniqueIdentifier>{7741b5c7-6f04-46a9-a196-78ab49ee119a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="FirstOrbit.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="FirstOrbit.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\DataManager.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DataObject.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\GameInstance.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\InputManager.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ResourceData.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ResourceManager.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Sound.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\SoundManager.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\TimeManager.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\UIManager.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Util.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WorldManager.cpp">
+      <Filter>01. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\AActor.cpp">
+      <Filter>02. GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Animation.cpp">
+      <Filter>02. GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Camera.cpp">
+      <Filter>02. GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\GameMode.cpp">
+      <Filter>02. GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Texture.cpp">
+      <Filter>02. GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\World.cpp">
+      <Filter>02. GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UAABBColliderComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UAnimatorComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UCircleColliderComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UColliderComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\USpriteComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Worlds\EditorWorld.cpp">
+      <Filter>10. Worlds</Filter>
+    </ClCompile>
+    <ClCompile Include="Worlds\GameOverWorld.cpp">
+      <Filter>10. Worlds</Filter>
+    </ClCompile>
+    <ClCompile Include="Worlds\MainWorld.cpp">
+      <Filter>10. Worlds</Filter>
+    </ClCompile>
+    <ClCompile Include="Worlds\TitleWorld.cpp">
+      <Filter>10. Worlds</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>98. ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_demo.cpp">
+      <Filter>98. ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>98. ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
+      <Filter>98. ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_win32.cpp">
+      <Filter>98. ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_tables.cpp">
+      <Filter>98. ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>98. ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="FirstOrbit.cpp">
+      <Filter>00. Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Structs.cpp">
+      <Filter>99. Header</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>99. Header</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\DataManager.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DataObject.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\GameInstance.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\InputManager.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ResourceData.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ResourceManager.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Singleton.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Sound.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\SoundManager.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\TimeManager.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UIManager.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Util.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WorldManager.h">
+      <Filter>01. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\AActor.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Animation.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Camera.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\GameMode.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\ObjectPool.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Texture.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\World.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UAABBColliderComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UActorComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UAnimatorComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UCircleColliderComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UColliderComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\USpriteComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Worlds\EditorWorld.h">
+      <Filter>10. Worlds</Filter>
+    </ClInclude>
+    <ClInclude Include="Worlds\GameOverWorld.h">
+      <Filter>10. Worlds</Filter>
+    </ClInclude>
+    <ClInclude Include="Worlds\MainWorld.h">
+      <Filter>10. Worlds</Filter>
+    </ClInclude>
+    <ClInclude Include="Worlds\TitleWorld.h">
+      <Filter>10. Worlds</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\nlohmann\json.hpp">
+      <Filter>97. Json\nlohmann</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\nlohmann\json_fwd.hpp">
+      <Filter>97. Json\nlohmann</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_dx11.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_win32.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\ImGui_ImplGDI.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>98. ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="FirstOrbit.h">
+      <Filter>00. Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Structs.h">
+      <Filter>99. Header</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>99. Header</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>99. Header</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>99. Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>99. Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

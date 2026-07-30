@@ -1,0 +1,28 @@
+# 빌드 산출물 (중첩된 솔루션 구조라 어느 깊이든 잡히게 ** 사용)
+**/Debug/
+**/Release/
+**/x64/
+**/x86/
+**/ipch/
+
+# Visual Studio IDE 캐시/사용자 설정
+.vs/
+*.vcxproj.user
+*.sdf
+*.opensdf
+*.suo
+
+# 개별 빌드 산출물 확장자 (혹시 위 폴더 규칙 밖에 남는 것 대비)
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.res
+*.recipe
+*.tlog
+*.lastbuildstate
+*.idb
+*.pch
+*.log
+*.iobj
+*.ipdb
