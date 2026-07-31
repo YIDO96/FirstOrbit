@@ -8,6 +8,7 @@ class TitleWorld : public World
 	using Super = World;
 
 public:
+	virtual void Enter() override;
 	virtual void Update(float deltaTime) override;
 
 protected:

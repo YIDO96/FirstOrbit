@@ -5,9 +5,9 @@
     },
     "MainWorld":
     {
-        "BG":{"fileName":"SpaceBG.bmp"},
-        "BG1":{"fileName":"SpaceBG1.bmp"},
-        "BG2":{"fileName":"SpaceBG2.bmp"}
+      "BG": { "fileName": "SpaceBG.bmp" },
+      "Sun":  {"fileName":  "Sun.bmp", "transparent": [255, 0, 255]},
+      "Earth":  {"fileName":  "Earth.bmp", "transparent": [255, 0, 255]}
     },
     "Sound":
     {

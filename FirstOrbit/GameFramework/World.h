@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ObjectPool.h"
+#include "GameFramework/Camera.h"
 
 class AActor;
 class GameMode;
@@ -80,7 +81,13 @@ protected:
 
     vector<AActor*> _pendingDestroy;
 
+    AActor* PickActor(Vector2 worldPos) const;
 
+public:
+    Camera& GetCamera() { return _camera; }
+
+protected:
+    Camera _camera;
 
 private:
     // ---- 공간 분할 격자 ----

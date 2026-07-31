@@ -1,16 +1,17 @@
 #include "pch.h"
 #include "World.h"
 
+#include "Core/GameInstance.h"
 #include "Core/ResourceManager.h"
-#include "Texture.h"
 #include "Core/TimeManager.h"
 #include "Core/DataManager.h"
 #include "Core/ResourceData.h"
+#include "Core/InputManager.h"
 
-#include "AActor.h"
-#include "Components/UColliderComponent.h"
-#include "GameMode.h"
-#include "Core/GameInstance.h"
+#include "GameFramework/Texture.h"
+#include "GameFramework/AActor.h"
+#include "GameFramework/Components/UColliderComponent.h"
+#include "GameFramework/GameMode.h"
 
 World::~World()
 {
@@ -33,10 +34,14 @@ void World::Enter()
 
     _gameMode = CreateGameMode();
     _gameMode->Init(this);
+
+    _camera.Init(GWinSizeX, GWinSizeY);
 }
 
 void World::Update(float deltaTime)
 {
+    _camera.Update(deltaTime);
+
     for (AActor* actor : _actors)
     {
         if (actor->GetIsActive()) actor->Update(deltaTime);
@@ -158,13 +163,28 @@ void World::ProcessPendingDestroy()
     }
     _pendingDestroy.clear();
 }
+AActor* World::PickActor(Vector2 worldPos) const
+{
+    for (AActor* actor : _actors)
+    {
+        UColliderComponent* col = actor->GetCollider();
+        if (!col || col->GetColliderType() != ColliderType::Circle) continue;
+
+        if ((worldPos - actor->GetCenterPos()).Length() <= col->GetRadius())
+            return actor;
+    }
+
+    return nullptr;
+}
 void World::Render(HDC hdc)
 {
     for (AActor* actor : _actors)
         if (actor->GetIsActive()) actor->Render(hdc);
 
     if (GameInstance::GetInstance().IsDebugMode())
-        RenderDebugGrid(hdc);
+    {
+        //RenderDebugGrid(hdc);
+    }
 }
 
 void World::RenderDebugGrid(HDC hdc)
@@ -252,13 +272,31 @@ void World::OnGUI()
     ImGui::Begin("World");
     ImGui::Text("World : %s", _worldName.c_str());
     OnSceneGUI();
-    ImGui::End();
 
+
+    ImGui::End();
     if (_gameMode)
         _gameMode->OnGUI();
 
-    for (AActor* actor : _actors)
-        if (actor->GetIsActive()) actor->OnGUI();
+
+
+    ImGui::Begin("World Hierarchy");
+    
+    _camera.OnSceneGUI();
+    if (_actors.size() >= 1)
+    {
+        if (ImGui::TreeNode("Actor"))
+        {
+            for (AActor* actor : _actors)
+                if (actor->GetIsActive()) actor->OnGUI();
+
+            ImGui::TreePop();
+        }
+    }
+   
+    ImGui::End();
+
+    
 }
 
 

@@ -34,6 +34,7 @@ public:
 
 	// F1로 토글되는 디버그 모드 (콜라이더 히트박스 시각화 등)
 	bool IsDebugMode() const { return _debugMode; }
+	void SetDebugMode(bool b) { _debugMode = b; }
 private:
 	// 아무나 생성못하게 생성자/소멸자를 숨기자
 	GameInstance() = default;

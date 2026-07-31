@@ -8,7 +8,7 @@ class UAABBColliderComponent : public UColliderComponent
 public:
 	UAABBColliderComponent(AActor* owner) : UColliderComponent(owner, ColliderType::AABB) {}
 
-	virtual void UpdateAABB() override;
+	virtual void Update() override;
 
 private:
 	AABB UpdateAABB2D_Standard();

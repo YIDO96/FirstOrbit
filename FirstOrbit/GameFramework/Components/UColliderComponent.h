@@ -35,7 +35,7 @@ public:
 	virtual void Init() override;
 	// 전체 액터가 다 움직인 "다음"에 World가 호출하는 2단계 브로드페이즈 AABB 갱신.
 	// 도형마다 계산 방식이 달라서 파생 클래스가 반드시 구현한다.
-	virtual void UpdateAABB() = 0;
+	virtual void Update() = 0;
 	virtual void Render(HDC hdc) override;
 
 	Vector2 GetAbsolutePos();

@@ -12,7 +12,7 @@ void UCircleColliderComponent::Init()
 		_radius = _owner->GetSize().x / 2.f;
 }
 
-void UCircleColliderComponent::UpdateAABB()
+void UCircleColliderComponent::Update()
 {
 	// 원은 회전에 영향을 받지 않으므로 중심 ± 반지름으로 바로 바운딩 박스를 구한다.
 	Vector2 center = _owner->GetCenterPos();

@@ -5,6 +5,9 @@
 enum class EActorType
 {
 	None,
+	Planet,
+	Ship,
+	Ground
 };
 
 class World;
@@ -76,10 +79,12 @@ public:
 	EActorType GetType()		const { return _type; }
 	bool GetIsActive()			const { return _isActive; }
 	float GetDegree()			const { return _degree; }
+	const string& GetName() const { return _name; }
 
 protected:
 	World* _ownerWorld			= nullptr;
 	EActorType _type			= EActorType::None;
+	string _name				= "";
 
 	// 부착된 모든 컴포넌트 (소유). Update/Render/OnGUI에서 전부 순회 위임한다.
 	vector<UActorComponent*> _components;

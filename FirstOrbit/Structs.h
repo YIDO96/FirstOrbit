@@ -250,6 +250,22 @@ struct Matrix3x3
 		return mat;
 	}
 
+	static Matrix3x3 Lerp(const Matrix3x3& a, const Matrix3x3& b, float t)
+	{
+		Matrix3x3 mat;
+
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				mat.m[i][j] = a.m[i][j] * (1.f - t) + b.m[i][j] * t;
+			}
+		}
+
+
+		return mat;
+	}
+
 	// 아핀방식 (2행을 항상 [0 0 1]이라고 가정하고 아예 사용하지 않는다.)
 	Matrix3x3 Inverse() const
 	{
@@ -399,6 +415,8 @@ struct Matrix3x3
 		return inv;
 	}
 
+
+	// operator*
 	Matrix3x3 operator*(float scalar) const
 	{
 		Matrix3x3 result;
@@ -418,7 +436,6 @@ struct Matrix3x3
 		return mat * scalar;
 	}
 
-	// operator*
 	Matrix3x3 operator*(const Matrix3x3& M) const
 	{
 		Matrix3x3 mat;

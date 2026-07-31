@@ -23,3 +23,10 @@ float DegreeToRadian(float degree)
 
 	return radian;
 }
+
+float LerpAngle(float from, float to, float t)
+{
+	float delta = to - from;
+	delta = atan2f(sinf(delta), cosf(delta));   // ±π 안으로 접기
+	return from + delta * t;
+}

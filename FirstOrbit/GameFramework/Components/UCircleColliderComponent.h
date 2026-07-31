@@ -13,7 +13,7 @@ public:
 	}
 
 	virtual void Init() override;
-	virtual void UpdateAABB() override;
+	virtual void Update() override;
 
 	void SetRadius(float radius) { _radius = radius; }
 };

@@ -3,7 +3,7 @@
 
 #include "GameFramework/AActor.h"
 
-void UAABBColliderComponent::UpdateAABB()
+void UAABBColliderComponent::Update()
 {
 	_aabb = UpdateAABB_WithRotation();
 }

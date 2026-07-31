@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="00. Main">
       <UniqueIdentifier>{6a6a240f-11f0-4e24-9365-3a1e8dd620f7}</UniqueIdentifier>
     </Filter>
@@ -32,18 +28,34 @@
     <Filter Include="97. Json\nlohmann">
       <UniqueIdentifier>{7741b5c7-6f04-46a9-a196-78ab49ee119a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="90. Resources">
+      <UniqueIdentifier>{937b3cd9-f5c9-45e4-b243-439a209efbff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="90. Resources\Data">
+      <UniqueIdentifier>{581eb59a-3724-4b19-9dbb-7eb9200554f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="90. Resources\Font">
+      <UniqueIdentifier>{e601bdcb-8b0c-4cde-96e0-84ae60a0cfdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="90. Resources\Image">
+      <UniqueIdentifier>{ab823617-acd4-476d-8081-e93fcb6eb3f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="90. Resources\Sound">
+      <UniqueIdentifier>{a970f837-d79c-43ac-8670-a989f7c199e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="11. Actor">
+      <UniqueIdentifier>{003f18f0-2e63-43a6-b390-356414f4b07c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="FirstOrbit.rc">
-      <Filter>리소스 파일</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>리소스 파일</Filter>
-    </Image>
     <Image Include="FirstOrbit.ico">
-      <Filter>리소스 파일</Filter>
+      <Filter>90. Resources</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>90. Resources</Filter>
+    </Image>
+    <Image Include="..\Resources\Image\SpaceBG.bmp">
+      <Filter>90. Resources\Image</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +169,12 @@
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>99. Header</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor\APlanet.cpp">
+      <Filter>11. Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Worlds\LaunchWorld.cpp">
+      <Filter>10. Worlds</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -301,5 +319,21 @@
     <ClInclude Include="Resource.h">
       <Filter>99. Header</Filter>
     </ClInclude>
+    <ClInclude Include="Actor\APlanet.h">
+      <Filter>11. Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Worlds\LaunchWorld.h">
+      <Filter>10. Worlds</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="FirstOrbit.rc">
+      <Filter>90. Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Resources\Data\ResourceData.json">
+      <Filter>90. Resources\Data</Filter>
+    </None>
   </ItemGroup>
 </Project>

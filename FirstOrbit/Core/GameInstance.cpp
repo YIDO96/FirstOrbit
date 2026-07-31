@@ -11,7 +11,9 @@
 #include "DataManager.h"
 #include "SoundManager.h"
 #include "UIManager.h"
+
 #include "Worlds/TitleWorld.h"
+#include "Worlds/LaunchWorld.h"
 #include "Worlds/MainWorld.h"
 #include "Worlds/GameOverWorld.h"
 #include "Worlds/EditorWorld.h"
@@ -213,6 +215,7 @@ void GameInstance::RegisterWorld()
 {
 	// 씬(World)들을 월드매니저에 등록 (≈ 언리얼의 OpenLevel로 전환 가능한 레벨 목록)
 	WORLD.RegisterWorld("TitleWorld", []() {return new TitleWorld(); });
+	WORLD.RegisterWorld("LaunchWorld", []() {return new LaunchWorld(); });
 	WORLD.RegisterWorld("MainWorld", []() {return new MainWorld(); });
 	WORLD.RegisterWorld("GameOverWorld", []() {return new GameOverWorld(); });
 	WORLD.RegisterWorld("EditorWorld", []() {return new EditorWorld(); });

@@ -36,7 +36,7 @@ void AActor::Update(float deltaTime)
 void AActor::UpdateCollider(float deltaTime)
 {
 	if (_collider)
-		_collider->UpdateAABB();
+		_collider->Update();
 }
 
 void AActor::Render(HDC hdc)

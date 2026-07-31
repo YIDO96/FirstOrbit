@@ -4,12 +4,21 @@
 #include "Core/InputManager.h"
 #include "Core/WorldManager.h"
 
+void TitleWorld::Enter()
+{
+	Super::Enter();
+
+	LoadTexture();
+
+	_camera.SetIsControll(false);
+}
+
 void TitleWorld::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
 
 	if (_INPUT.GetButtonDown(KeyType::SpaceBar))
-		WORLD.ChangeWorld("MainWorld");
+		WORLD.ChangeWorld("LaunchWorld");
 
 	if (_INPUT.GetButtonDown(KeyType::F1))
 		WORLD.ChangeWorld("EditorWorld");
