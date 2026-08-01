@@ -22,9 +22,6 @@
     <Filter Include="99. Header">
       <UniqueIdentifier>{382b71cb-8bb2-4088-b047-aa7874cd9e0c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="02. GameFramework\Components">
-      <UniqueIdentifier>{54230144-a573-405d-a71c-ccac3d16d1de}</UniqueIdentifier>
-    </Filter>
     <Filter Include="97. Json\nlohmann">
       <UniqueIdentifier>{7741b5c7-6f04-46a9-a196-78ab49ee119a}</UniqueIdentifier>
     </Filter>
@@ -45,6 +42,9 @@
     </Filter>
     <Filter Include="11. Actor">
       <UniqueIdentifier>{003f18f0-2e63-43a6-b390-356414f4b07c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameFramework\Components">
+      <UniqueIdentifier>{a871e994-0145-408b-8039-e0d8f1e7728f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -113,21 +113,6 @@
     <ClCompile Include="GameFramework\World.cpp">
       <Filter>02. GameFramework</Filter>
     </ClCompile>
-    <ClCompile Include="GameFramework\Components\UAABBColliderComponent.cpp">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="GameFramework\Components\UAnimatorComponent.cpp">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="GameFramework\Components\UCircleColliderComponent.cpp">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="GameFramework\Components\UColliderComponent.cpp">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="GameFramework\Components\USpriteComponent.cpp">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Worlds\EditorWorld.cpp">
       <Filter>10. Worlds</Filter>
     </ClCompile>
@@ -175,6 +160,28 @@
     </ClCompile>
     <ClCompile Include="Worlds\LaunchWorld.cpp">
       <Filter>10. Worlds</Filter>
+    </ClCompile>
+    <ClCompile Include="StarField.cpp" />
+    <ClCompile Include="Actor\ASpaceship.cpp">
+      <Filter>11. Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UAABBColliderComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UAnimatorComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UCircleColliderComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UColliderComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\UPhysicsComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\Components\USpriteComponent.cpp">
+      <Filter>02. GameFramework\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -237,24 +244,6 @@
     </ClInclude>
     <ClInclude Include="GameFramework\World.h">
       <Filter>02. GameFramework</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework\Components\UAABBColliderComponent.h">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework\Components\UActorComponent.h">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework\Components\UAnimatorComponent.h">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework\Components\UCircleColliderComponent.h">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework\Components\UColliderComponent.h">
-      <Filter>02. GameFramework\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework\Components\USpriteComponent.h">
-      <Filter>02. GameFramework\Components</Filter>
     </ClInclude>
     <ClInclude Include="Worlds\EditorWorld.h">
       <Filter>10. Worlds</Filter>
@@ -324,6 +313,31 @@
     </ClInclude>
     <ClInclude Include="Worlds\LaunchWorld.h">
       <Filter>10. Worlds</Filter>
+    </ClInclude>
+    <ClInclude Include="StarField.h" />
+    <ClInclude Include="Actor\ASpaceship.h">
+      <Filter>11. Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UAABBColliderComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UActorComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UAnimatorComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UCircleColliderComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UColliderComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\UPhysicsComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\Components\USpriteComponent.h">
+      <Filter>02. GameFramework\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

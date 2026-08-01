@@ -34,5 +34,5 @@ private:
 
 	class APlanet* _homePlanet = nullptr;
 
-	class StarField* _starField;
+	class StarField* _starField = nullptr;
 };

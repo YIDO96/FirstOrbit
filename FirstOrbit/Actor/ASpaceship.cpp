@@ -4,6 +4,7 @@
 #include "Core/InputManager.h"
 #include "GameFramework/Camera.h"
 #include "GameFramework/World.h"
+#include "GameFramework/Components/UPhysicsComponent.h"
 
 
 void ASpaceship::Init()
@@ -11,6 +12,11 @@ void ASpaceship::Init()
 	_size = Vector2(12.f, 20.f);
 	_type = EActorType::Ship;
 	_name = "SpaceShip";
+
+
+	UPhysicsComponent* physicsComp = AddComponent<UPhysicsComponent>();
+
+
 }
 void ASpaceship::Update(float deltaTime)
 {
@@ -53,6 +59,11 @@ void ASpaceship::OnGUI()
 
 	if (ImGui::TreeNode(name))
 	{
+		Super::OnGUI();
+
+
+
+
 
 		ImGui::TreePop();
 	}
@@ -65,5 +76,5 @@ void ASpaceship::Input(float deltaTime)
 	if (_INPUT.GetButtonPressed(KeyType::D)or _INPUT.GetButtonPressed(KeyType::Right)) AddRotation(_rotSpeed * deltaTime);
 
 	// Move (Up,Down)
-	if (_INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Left)) _pos += _forwardDir * _moveSpeed * deltaTime;
+	if (_INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up)) _pos += _forwardDir * _moveSpeed * deltaTime;
 }

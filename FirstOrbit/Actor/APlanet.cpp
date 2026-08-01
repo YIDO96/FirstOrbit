@@ -88,13 +88,13 @@ void APlanet::OnGUI()
 	}
 }
 
-void APlanet::Setup(string name, Vector2 orbitCenter, float orbitRadius, float orbitSpeed, float mass, float bodyRadius, float initialAngle)
+void APlanet::Setup(string name, Vector2 orbitCenter, float orbitRadius, float orbitSpeed, float mu, float bodyRadius, float initialAngle)
 {
 	_name = name;
 	_orbitCenter = orbitCenter;
 	_orbitRadius = orbitRadius;
 	_orbitSpeed = orbitSpeed;
-	_mass = mass;
+	_mu = mu;
 	_bodyRadius = bodyRadius;
 	_angle = initialAngle;
 

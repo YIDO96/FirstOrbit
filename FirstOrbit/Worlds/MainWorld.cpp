@@ -13,9 +13,6 @@
 
 MainWorld::~MainWorld()
 {
-	delete _bg;
-	delete _selected;
-	delete _homePlanet;
 	delete _starField;
 }
 
@@ -133,49 +130,49 @@ void MainWorld::LoadTexture()
 void MainWorld::InitPlanet()
 {
 	APlanet* sun = SpawnActor<APlanet>();
-	sun->Setup("Sun", Vector2(0, 0), 0.f, 0.f, 0, 12000.f);
+	sun->Setup("Sun", Vector2(0, 0), 0.f,  0.f, 2.88e9f, 12000.f);
 	sun->SetTexture(RESOURCE.GetTexture(L"Sun"));
 
 	float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* mercury = SpawnActor<APlanet>();//0.032f
-	mercury->Setup("Mercury", sun->GetCenterPos(), 20000.f, 0.032f, 0, 400.f, randomAngle);
+	mercury->Setup("Mercury", sun->GetCenterPos(), 20000.f, 0.032f, 3.2e6f, 400.f, randomAngle);
 	mercury->SetTexture(RESOURCE.GetTexture(L"Earth"));
 
 	randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* venus = SpawnActor<APlanet>();
-	venus->Setup("Venus", sun->GetCenterPos(), 40000.f, 0.024f, 0, 950.f, randomAngle);
+	venus->Setup("Venus", sun->GetCenterPos(), 40000.f, 0.024f, 1.805e7f, 950.f, randomAngle);
 	venus->SetTexture(RESOURCE.GetTexture(L"Earth"));
 
 	randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* earth = SpawnActor<APlanet>();
-	earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.02f, /*mass*/ 0, /*bodyRadius*/ 1000.f, randomAngle);
+	earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.02f, /*mu*/ 	2.0e7f, /*bodyRadius*/ 1000.f, randomAngle);
 	earth->SetTexture(RESOURCE.GetTexture(L"Earth"));
 	_homePlanet = earth;
 
 
 	randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* mars = SpawnActor<APlanet>();
-	mars->Setup("Mars", sun->GetCenterPos(), 80000.f, 0.016f, 0, 550.f, randomAngle);
+	mars->Setup("Mars", sun->GetCenterPos(), 80000.f, 0.016f, 6.05e6f, 550.f, randomAngle);
 	mars->SetTexture(RESOURCE.GetTexture(L"Earth"));
 
 	randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* jupiter = SpawnActor<APlanet>();
-	jupiter->Setup("Jupiter", sun->GetCenterPos(), 120000.f, 0.009f, 0, 4000.f, randomAngle);
+	jupiter->Setup("Jupiter", sun->GetCenterPos(), 120000.f, 0.009f, 3.2e8f, 4000.f, randomAngle);
 	jupiter->SetTexture(RESOURCE.GetTexture(L"Earth"));
 
 	randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* saturn = SpawnActor<APlanet>();
-	saturn->Setup("Saturn", sun->GetCenterPos(), 160000.f, 0.007f, 0, 3200.f, randomAngle);
+	saturn->Setup("Saturn", sun->GetCenterPos(), 160000.f, 0.007f, 2.048e8f, 3200.f, randomAngle);
 	saturn->SetTexture(RESOURCE.GetTexture(L"Earth"));
 
 	randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* uranus = SpawnActor<APlanet>();
-	uranus->Setup("Uranus", sun->GetCenterPos(), 200000.f, 0.005f, 0, 2200.f, randomAngle);
+	uranus->Setup("Uranus", sun->GetCenterPos(), 200000.f, 0.005f, 9.68e7f, 2200.f, randomAngle);
 	uranus->SetTexture(RESOURCE.GetTexture(L"Earth"));
 
 	randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 	APlanet* neptune = SpawnActor<APlanet>();
-	neptune->Setup("Neptune", sun->GetCenterPos(), 240000.f, 0.004f, 0, 2000.f, randomAngle);
+	neptune->Setup("Neptune", sun->GetCenterPos(), 240000.f, 0.004f, 8.0e7f, 2000.f, randomAngle);
 	neptune->SetTexture(RESOURCE.GetTexture(L"Earth"));
 }
 

@@ -26,7 +26,5 @@ private:
 
 	float _moveSpeed = 100.f;
 	float _rotSpeed = 90.f;   // 초당 90도
-
-	float _gravity = 9.8f;
 };
 

@@ -173,6 +173,7 @@
     <ClCompile Include="GameFramework\Components\UAnimatorComponent.cpp" />
     <ClCompile Include="GameFramework\Components\UCircleColliderComponent.cpp" />
     <ClCompile Include="GameFramework\Components\UColliderComponent.cpp" />
+    <ClCompile Include="GameFramework\Components\UPhysicsComponent.cpp" />
     <ClCompile Include="GameFramework\Components\USpriteComponent.cpp" />
     <ClCompile Include="GameFramework\GameMode.cpp" />
     <ClCompile Include="GameFramework\Texture.cpp" />
@@ -259,6 +260,7 @@
     <ClInclude Include="GameFramework\Components\UAnimatorComponent.h" />
     <ClInclude Include="GameFramework\Components\UCircleColliderComponent.h" />
     <ClInclude Include="GameFramework\Components\UColliderComponent.h" />
+    <ClInclude Include="GameFramework\Components\UPhysicsComponent.h" />
     <ClInclude Include="GameFramework\Components\USpriteComponent.h" />
     <ClInclude Include="GameFramework\GameMode.h" />
     <ClInclude Include="GameFramework\ObjectPool.h" />

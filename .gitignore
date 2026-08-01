@@ -26,3 +26,6 @@
 *.log
 *.iobj
 *.ipdb
+
+# 학습용 참고 PDF (저장소에 넣지 않는다 — 용량)
+docs/study/*.pdf
