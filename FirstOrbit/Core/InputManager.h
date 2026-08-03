@@ -14,6 +14,7 @@ enum class KeyType
 	Right = VK_RIGHT,
 	SpaceBar = VK_SPACE,
 
+	KEY_0 = '0',
 	KEY_1 = '1',
 	KEY_2 = '2',
 
@@ -26,6 +27,7 @@ enum class KeyType
 	E = 'E',
 	G = 'G',
 	R = 'R',
+	P = 'P',
 
 	F1 = VK_F1,
 	F2 = VK_F2,

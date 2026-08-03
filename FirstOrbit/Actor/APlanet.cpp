@@ -9,6 +9,7 @@
 
 void APlanet::Init()
 {
+	_type = EActorType::Planet;
 	_circleCollider = AddComponent<UCircleColliderComponent>();
 	_collider = _circleCollider;
 	

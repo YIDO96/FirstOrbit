@@ -14,6 +14,12 @@ public:
 
 	void Input(float deltaTime);
 
+	void SetTargetPlanet(class APlanet* planet) { _targetPlanet = planet; }
+
+
+	APlanet* GetTargetPlanet() const { return _targetPlanet; }
+	float GetThrust() const { return _thrust; }
+	bool GetIsThrusting() const { return _isThrusting; }
 
 private:
 	// 임시
@@ -24,7 +30,12 @@ private:
 		Vector2( 6.f,    8.f)    // 오른쪽 꼬리
 	};
 
-	float _moveSpeed = 100.f;
+	class APlanet* _targetPlanet = nullptr;
+
+	//float _moveSpeed = 100.f;
+	float _thrust = 35.f;     // 초당 35픽셀 가속, 가속도 차원 [units/s^2], TWR(Thrust-to-Weight Ratio) 1.75
 	float _rotSpeed = 90.f;   // 초당 90도
+
+	bool _isThrusting = false;	// 이번 프레임에 추력을 켰는지 체크
 };
 

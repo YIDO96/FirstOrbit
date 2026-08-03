@@ -18,6 +18,11 @@ public:
 
 	Vector2 ComputeAcceleration(const Vector2& pos, const Vector2& vel) const;
 
+
+	void SetVelocity(const Vector2& velocity) { _velocity = velocity; }
+	Vector2 GetVelocity() const { return _velocity; }
+
+
 private:
 	// 가속도는 따로 두지 않음 (실시간 계산)
 	Vector2 _velocity = Vector2(0.f, 0.f);

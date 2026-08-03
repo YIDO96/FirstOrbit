@@ -66,20 +66,21 @@ public:
 
 	// ObjectPool<T>::Init()이 버퍼를 만들면서 채워준다. 풀에서 태어난 액터가 아니면 nullptr로 남는다.
 	void SetPool(IObjectPool* pool)	{ _pool = pool; }
-	IObjectPool* GetPool() const		{ return _pool; }
+	IObjectPool* GetPool()				const		{ return _pool; }
 
 	// ---- Get ----
-	Vector2 GetPos()			const { return _pos; }
-	Vector2 GetCenterPos()		const { return _center; }
-	Vector2 GetSize()			const { return _size; }
+	World* GetOwnerWorld()				const { return _ownerWorld; }
+	Vector2 GetPos()					const { return _pos; }
+	Vector2 GetCenterPos()				const { return _center; }
+	Vector2 GetSize()					const { return _size; }
 	UColliderComponent* GetCollider()	const { return _collider; }
-	Vector2 GetAbsoluteUpDir()	const { return Vector2(0, -1); }			// 화면 절대 위쪽(회전 무관)
-	Vector2 GetForwardDir()		const { return _forwardDir; }				// 정면 방향(회전 반영)
-	Vector2 GetRightDir()		const { return _rightDir; }					// 오른쪽 방향(회전 반영)
-	EActorType GetType()		const { return _type; }
-	bool GetIsActive()			const { return _isActive; }
-	float GetDegree()			const { return _degree; }
-	const string& GetName() const { return _name; }
+	Vector2 GetAbsoluteUpDir()			const { return Vector2(0, -1); }			// 화면 절대 위쪽(회전 무관)
+	Vector2 GetForwardDir()				const { return _forwardDir; }				// 정면 방향(회전 반영)
+	Vector2 GetRightDir()				const { return _rightDir; }					// 오른쪽 방향(회전 반영)
+	EActorType GetType()				const { return _type; }
+	bool GetIsActive()					const { return _isActive; }
+	float GetDegree()					const { return _degree; }
+	const string& GetName()				const { return _name; }
 
 protected:
 	World* _ownerWorld			= nullptr;

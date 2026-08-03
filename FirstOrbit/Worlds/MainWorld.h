@@ -32,7 +32,7 @@ private:
 
 	AActor* _selected = nullptr;
 
-	class APlanet* _homePlanet = nullptr;
-
 	class StarField* _starField = nullptr;
+	class APlanet* _homePlanet = nullptr;
+	class ASpaceship* _ship = nullptr;
 };

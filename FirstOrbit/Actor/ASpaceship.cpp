@@ -76,5 +76,6 @@ void ASpaceship::Input(float deltaTime)
 	if (_INPUT.GetButtonPressed(KeyType::D)or _INPUT.GetButtonPressed(KeyType::Right)) AddRotation(_rotSpeed * deltaTime);
 
 	// Move (Up,Down)
-	if (_INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up)) _pos += _forwardDir * _moveSpeed * deltaTime;
+	//if (_INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up)) _pos += _forwardDir * _moveSpeed * deltaTime;
+	_isThrusting = _INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up);
 }
