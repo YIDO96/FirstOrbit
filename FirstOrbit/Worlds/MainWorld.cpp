@@ -11,6 +11,8 @@
 #include "Actor/APlanet.h"
 #include "Actor/ASpaceship.h"
 
+#include "GameMode/OrbitalGameMode.h"
+
 #include "StarField.h"
 
 MainWorld::~MainWorld()
@@ -48,6 +50,8 @@ void MainWorld::Enter()
 	}
 
 	_ship->GetComponent<UPhysicsComponent>()->SetPaused(false);
+	GetGameMode<OrbitalGameMode>()->SetShip(_ship);
+	_homePlanet = _ship->GetTargetPlanet();
 	_camera.SetFollowTarget(_ship);					// 관찰하기 쉽게 카메라 붙여두기
 
 
@@ -158,14 +162,19 @@ void MainWorld::OnSceneGUI()
 	ImGui::Text("Gameplay (아직 액터 없음)");
 	ImGui::Text("P : 게임오버 전환 (데모)");
 
-	//_camera.OnSceneGUI();
-
-	ImGui::Text("WheelDelta : %.2f", _INPUT.GetWheelDelta());
-	//ImGui::Text("BG Pos X : %.2f, Y : ", _bg.);
-
 	if (_selected)
 	{
 		if (APlanet* p = dynamic_cast<APlanet*>(_selected))
 			ImGui::Text("선택된 행성: %s", p->GetName().c_str());
 	}
+
+	//if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+	//{
+	//
+	//}
+}
+
+GameMode* MainWorld::CreateGameMode()
+{
+	return new OrbitalGameMode();
 }

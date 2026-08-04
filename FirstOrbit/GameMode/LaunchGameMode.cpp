@@ -19,9 +19,35 @@ void LaunchGameMode::Update(float deltaTime)
 
 void LaunchGameMode::OnGUI()
 {
-	Super::OnGUI();
-	//ImGui::Text("LaunchState: %s", stateName[(int32)_launchState]);
-	ImGui::Text("LaunchState: %d", (int32)_launchState);
+	if (ImGui::TreeNode("GameMode"))
+	{
+		ImGui::Text("GameMode : LaunchGameMode");
+		Super::OnGUI();
+		switch (_launchState)
+		{
+		case ELaunchState::Idle:
+			ImGui::Text("LaunchState: Idle");
+			break;
+		case ELaunchState::Countdown:
+			ImGui::Text("LaunchState: Countdown");
+			break;
+		case ELaunchState::Ascent:
+			ImGui::Text("LaunchState: Ascent");
+			break;
+		case ELaunchState::Failed:
+			ImGui::Text("LaunchState: Failed");
+			break;
+		case ELaunchState::Success:
+			ImGui::Text("LaunchState: Success");
+			break;
+		case ELaunchState::MAX_State:
+			break;
+		default:
+			break;
+		}
+
+		ImGui::TreePop();
+	}
 }
 
 void LaunchGameMode::ChangeLaunchState(ELaunchState newState)

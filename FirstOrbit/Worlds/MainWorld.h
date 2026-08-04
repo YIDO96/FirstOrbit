@@ -25,6 +25,8 @@ protected:
 	virtual void OnSceneGUI() override;
 	virtual wstring GetResourceSectionName() const { return L"MainWorld"; }
 
+	virtual GameMode* CreateGameMode() override;
+
 public:
 
 private:

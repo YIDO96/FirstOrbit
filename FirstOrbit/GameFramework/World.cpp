@@ -277,15 +277,23 @@ void World::OnGUI()
     
     // NoBackground + RegisterUIBackgroundRect: GameInstance.h 주석 참고
     // (ImGui 소프트웨어 래스터라이저 대신 GDI로 배경을 채워 성능을 아낀다)
-    ImGui::Begin("GameMode", nullptr, ImGuiWindowFlags_NoBackground);
-    if (_gameMode)
-        _gameMode->OnGUI();
-
-    ImGui::End();
+    //ImGui::Begin("GameMode", nullptr, ImGuiWindowFlags_NoBackground);
+    // {
+    //     ImVec2 wpos = ImGui::GetWindowPos();
+    //     ImVec2 wsize = ImGui::GetWindowSize();
+    //     GameInstance::GetInstance().RegisterUIBackgroundRect((int)wpos.x, (int)wpos.y, (int)wsize.x, (int)wsize.y);
+    // }
+    //if (_gameMode)
+    //    _gameMode->OnGUI();
+    //
+    //ImGui::End();
 
     ImGui::Begin("World Hierarchy");
     
-    _camera.OnSceneGUI();
+    if (_gameMode) _gameMode->OnGUI();
+
+     _camera.OnSceneGUI();
+
     if (_actors.size() >= 1)
     {
         if (ImGui::TreeNode("Actor"))

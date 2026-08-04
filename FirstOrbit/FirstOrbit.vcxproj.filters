@@ -189,6 +189,9 @@
     <ClCompile Include="GameMode\LaunchGameMode.cpp">
       <Filter>11. GameMode</Filter>
     </ClCompile>
+    <ClCompile Include="GameMode\OrbitalGameMode.cpp">
+      <Filter>11. GameMode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\DataManager.h">
@@ -346,6 +349,9 @@
       <Filter>02. GameFramework\Components</Filter>
     </ClInclude>
     <ClInclude Include="GameMode\LaunchGameMode.h">
+      <Filter>11. GameMode</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMode\OrbitalGameMode.h">
       <Filter>11. GameMode</Filter>
     </ClInclude>
   </ItemGroup>

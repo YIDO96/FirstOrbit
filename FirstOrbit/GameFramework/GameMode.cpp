@@ -4,12 +4,15 @@
 
 void GameMode::OnGUI()
 {
-	
+	switch (_state)
 	{
-		ImVec2 wpos = ImGui::GetWindowPos();
-		ImVec2 wsize = ImGui::GetWindowSize();
-		GameInstance::GetInstance().RegisterUIBackgroundRect((int)wpos.x, (int)wpos.y, (int)wsize.x, (int)wsize.y);
+	case EGameState::Playing:
+		ImGui::Text("GameState : Playing");
+		break;
+	case EGameState::GameOver:
+		ImGui::Text("GameState : GameOver");
+		break;
+	default:
+		break;
 	}
-	ImGui::Text("GameState : %d", (int32)_state);
-	
 }
