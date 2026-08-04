@@ -2,6 +2,14 @@
 
 #include "Singleton.h"
 
+struct LaunchHandoff
+{
+	Vector2 position;
+	Vector2 velocity;
+	float degree = 0.f;
+};
+
+
 // 앱 생애주기 동안 유지되는 전역 상태를 담당한다 (≈ 언리얼의 UGameInstance).
 // 게임 규칙/승패 판정은 GameMode가 담당하고, 여긴 창/백버퍼/서브시스템 초기화와
 // 메시지 루프 진입점(Init/Update/Render)만 갖는다.
@@ -31,6 +39,10 @@ public:
 	// Begin() 직후 자신의 현재 위치/크기를 등록해두면 GDI FillRect로 훨씬 빠르게 채워준다.
 	// (ImGui의 소프트웨어 삼각형 래스터라이저로 큰 배경을 매 프레임 채우면 비용이 크다)
 	void RegisterUIBackgroundRect(int x, int y, int w, int h);
+
+	void SetLaunchHandoff(const LaunchHandoff& handoff);
+	bool ConsumeLaunchHandoff(LaunchHandoff& out);
+
 
 	// F1로 토글되는 디버그 모드 (콜라이더 히트박스 시각화 등)
 	bool IsDebugMode() const { return _debugMode; }
@@ -72,6 +84,9 @@ private:
 	Vector2 _screenCenter;
 
 	bool _debugMode = false;
+
+	LaunchHandoff _launchHandoff;
+	bool _hasLaunchHandoff = false;
 };
 
 

@@ -27,12 +27,16 @@ public:
 
 
 	Vector2 ComputeAcceleration(const Vector2& pos, const Vector2& vel) const;
-	EIntergrator GetIntegrator() const { return _integrator; }
+
+
 
 	void SetPaused(bool isPause) { _isPaused = isPause; }
 	void SetVelocity(const Vector2& velocity) { _velocity = velocity; }
+	void SetIntewgrator(EIntergrator integrator) { _integrator = integrator; }
+
 	Vector2 GetVelocity() const { return _velocity; }
 	bool GetIsPaused() const { return _isPaused; }
+	EIntergrator GetIntegrator() const { return _integrator; }
 
 private:
 	void PhysicsStep(float deltaTime);

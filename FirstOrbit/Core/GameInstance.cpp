@@ -122,6 +122,20 @@ void GameInstance::RegisterUIBackgroundRect(int x, int y, int w, int h)
 	_uiBackgroundRects.push_back({ x, y, x + w, y + h });
 }
 
+void GameInstance::SetLaunchHandoff(const LaunchHandoff& handoff)
+{
+	_launchHandoff = handoff;
+	_hasLaunchHandoff = true;
+}
+
+bool GameInstance::ConsumeLaunchHandoff(LaunchHandoff& out)
+{
+	if (!_hasLaunchHandoff) return false;
+	out = _launchHandoff;
+	_hasLaunchHandoff = false;
+	return true;
+}
+
 void GameInstance::Update()
 {
 	// 카메라(마우스 좌표 변환)가 이 값을 쓰므로, 월드 Update보다 먼저 확정해야 한다.

@@ -1,12 +1,14 @@
 #include "pch.h"
 #include "LaunchWorld.h"
 
+#include "Core/GameInstance.h"
 #include "Core/InputManager.h"
 #include "Core/WorldManager.h"
 
 #include "Actor/ASpaceship.h"
 
 #include "GameFramework/GameMode.h"
+#include "GameFramework/Components/UPhysicsComponent.h"
 #include "GameMode/LaunchGameMode.h"
 
 void LaunchWorld::Enter()
@@ -26,11 +28,29 @@ void LaunchWorld::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
 
+	
+
 	LaunchGameMode* launchGameMode = GetGameMode<LaunchGameMode>();
 	if (launchGameMode->GetLaunchState() == ELaunchState::Idle and
 		_INPUT.GetButtonDown(KeyType::SpaceBar))
 	{
 		launchGameMode->ChangeLaunchState(ELaunchState::Countdown);
+	}
+
+	if (launchGameMode->GetLaunchState() == ELaunchState::Ascent)
+	{
+		float altitude = -_ship->GetCenterPos().y;   // 위가 -y
+		if (altitude > 1000.f)
+		{
+			LaunchHandoff handoff;
+			handoff.position = (_ship->GetCenterPos() - Vector2(0, 0)).Normalized() * 1000.f;
+			//handoff.position = _ship->GetCenterPos();
+			handoff.velocity = _ship->GetComponent<UPhysicsComponent>()->GetVelocity();
+			handoff.degree = _ship->GetDegree();
+			GAME.SetLaunchHandoff(handoff);
+
+			WORLD.ChangeWorld("MainWorld");
+		}
 	}
 
 	if (_INPUT.GetButtonDown(KeyType::R))

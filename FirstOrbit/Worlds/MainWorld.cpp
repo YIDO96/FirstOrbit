@@ -31,8 +31,23 @@ void MainWorld::Enter()
 	InitPlanet();
 
 	_ship = SpawnActor<ASpaceship>();
-	_ship->SetCenterPos(_homePlanet->GetCenterPos() + Vector2(1300.f, 0.f));
+	//_ship->SetCenterPos(_homePlanet->GetCenterPos() + Vector2(1300.f, 0.f));
 	_ship->SetTargetPlanet(_homePlanet);
+
+	LaunchHandoff handoff;
+	if (GAME.ConsumeLaunchHandoff(handoff))
+	{
+		Vector2 launchOrigin = _homePlanet->GetCenterPos() + Vector2(0.f, -_homePlanet->GetBodyRadius());
+		_ship->SetCenterPos(_homePlanet->GetCenterPos() + handoff.position);
+		_ship->SetRotation(handoff.degree);
+		_ship->GetComponent<UPhysicsComponent>()->SetVelocity(handoff.velocity);
+	}
+	else
+	{
+		_ship->SetCenterPos(_homePlanet->GetCenterPos() + Vector2(0.f, -1300.f));
+	}
+
+	_ship->GetComponent<UPhysicsComponent>()->SetPaused(false);
 	_camera.SetFollowTarget(_ship);					// 관찰하기 쉽게 카메라 붙여두기
 
 
@@ -65,7 +80,7 @@ void MainWorld::Update(float deltaTime)
 		float r = 1300.f;	// 고도 300 (지구 반지금 1000)
 		float speed = sqrtf(_homePlanet->GetMu() / r);
 
-		Vector2 dir(1.f, 0);						// 행성 -> 우주선 방향
+		Vector2 dir(0.f, -1.f);						// 행성 -> 우주선 방향
 		Vector2 perp(-dir.y, dir.x);				// 반지름에 수직
 		
 		_ship->SetCenterPos(center + dir * r);
