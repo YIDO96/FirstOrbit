@@ -141,7 +141,7 @@ void MainWorld::InitPlanet()
 void MainWorld::OnSceneGUI()
 {
 	ImGui::Text("Gameplay (아직 액터 없음)");
-	ImGui::Text("G : 게임오버 전환 (데모)");
+	ImGui::Text("P : 게임오버 전환 (데모)");
 
 	//_camera.OnSceneGUI();
 

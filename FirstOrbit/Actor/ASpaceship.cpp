@@ -14,7 +14,7 @@ void ASpaceship::Init()
 	_name = "SpaceShip";
 
 
-	UPhysicsComponent* physicsComp = AddComponent<UPhysicsComponent>();
+	_physicsComp = AddComponent<UPhysicsComponent>();
 
 
 }
@@ -24,6 +24,14 @@ void ASpaceship::Update(float deltaTime)
 
 	Input(deltaTime);
 
+	_trailSampleTimer += deltaTime;
+	if (_trailSampleTimer >= 0.05f)
+	{
+		_trailSampleTimer = 0.f;
+		_trail.push_back(GetCenterPos());
+		if (_trail.size() > maxTrail)
+			_trail.erase(_trail.begin());
+	}
 }
 void ASpaceship::Render(HDC hdc)
 {
@@ -52,6 +60,22 @@ void ASpaceship::Render(HDC hdc)
 
 	::SelectObject(hdc, oldBrush);
 	::DeleteObject(brush);
+
+	COLORREF color = RGB(255, 255, 0);
+	if (_physicsComp)
+	{
+		_physicsComp->GetIntegrator() == EIntergrator::ExplicitEuler ? color = RGB(255, 0, 0) :
+			_physicsComp->GetIntegrator() == EIntergrator::SemiImplicitEuler? color = RGB(0, 255, 0) :
+			_physicsComp->GetIntegrator() == EIntergrator::RK4 ? color = RGB(0, 0, 255) : color = RGB(255, 255, 255);
+	}
+
+
+	for (const Vector2& p : _trail)
+	{
+		Vector2 s = cam.WorldToScreen(p);
+		::SetPixel(hdc, (int)s.x, (int)s.y, color);
+	}
+
 }
 void ASpaceship::OnGUI()
 {
