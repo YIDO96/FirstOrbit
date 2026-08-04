@@ -273,12 +273,15 @@ void World::OnGUI()
     ImGui::Text("World : %s", _worldName.c_str());
     OnSceneGUI();
 
-
     ImGui::End();
+    
+    // NoBackground + RegisterUIBackgroundRect: GameInstance.h 주석 참고
+    // (ImGui 소프트웨어 래스터라이저 대신 GDI로 배경을 채워 성능을 아낀다)
+    ImGui::Begin("GameMode", nullptr, ImGuiWindowFlags_NoBackground);
     if (_gameMode)
         _gameMode->OnGUI();
 
-
+    ImGui::End();
 
     ImGui::Begin("World Hierarchy");
     

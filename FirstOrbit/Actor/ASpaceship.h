@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameFramework/AActor.h"
+#include "Core/InputManager.h"
 
 class ASpaceship : public AActor
 {
@@ -13,13 +14,14 @@ public:
 	virtual void OnGUI() override;
 
 	void Input(float deltaTime);
-
+	void Reset();
 	void SetTargetPlanet(class APlanet* planet) { _targetPlanet = planet; }
 	
 
-	APlanet* GetTargetPlanet() const { return _targetPlanet; }
+	class APlanet* GetTargetPlanet() const { return _targetPlanet; }
 	float GetThrust() const { return _thrust; }
 	bool GetIsThrusting() const { return _isThrusting; }
+	KeyType GetKeyInput() const { return _keyInput; }
 
 private:
 	// 임시
@@ -30,8 +32,11 @@ private:
 		Vector2( 6.f,    8.f)    // 오른쪽 꼬리
 	};
 
+	KeyType _keyInput = KeyType::L;
+
 	class APlanet* _targetPlanet = nullptr;
 	class UPhysicsComponent* _physicsComp = nullptr;
+
 
 	//float _moveSpeed = 100.f;
 	float _thrust = 35.f;     // 초당 35픽셀 가속, 가속도 차원 [units/s^2], TWR(Thrust-to-Weight Ratio) 1.75

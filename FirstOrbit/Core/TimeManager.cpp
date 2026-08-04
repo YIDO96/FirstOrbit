@@ -52,7 +52,10 @@ void TimeManager::Update()
 	// 타이머 업데이트
 	for (auto& iter : _timers)
 	{
-		iter.Update(_deltaTime);
+		if (iter.Update(_deltaTime))
+		{
+			_removeTimers.insert(iter.GetId());
+		}
 	}
 }
 
@@ -76,7 +79,7 @@ void TimeManager::Remove(int32 id)
 //----------------------------------
 // 타이머 객체
 //----------------------------------
-void Timer::Update(float deltaTime)
+bool Timer::Update(float deltaTime)
 {
 	_sumTime += deltaTime;
 	if (_sumTime >= _interval)
@@ -86,8 +89,13 @@ void Timer::Update(float deltaTime)
 		if (_loop)
 		{
 			_sumTime -= _interval;
+			return false;
 		}
+
+		return true;
 	}
+
+	return false;
 }
 
 bool Timer::IsExpired()

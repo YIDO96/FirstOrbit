@@ -85,8 +85,8 @@ void ASpaceship::OnGUI()
 	{
 		Super::OnGUI();
 
-
-
+		ImGui::SliderFloat("Thrust", &_thrust, 10.f, 60.f);
+		ImGui::SliderFloat("RotSpeed", &_rotSpeed, 30.f, 180.f);
 
 
 		ImGui::TreePop();
@@ -95,11 +95,22 @@ void ASpaceship::OnGUI()
 
 void ASpaceship::Input(float deltaTime)
 {
-	// Rotate (Right,Left)
-	if (_INPUT.GetButtonPressed(KeyType::A)or _INPUT.GetButtonPressed(KeyType::Left)) AddRotation(-_rotSpeed * deltaTime);
-	if (_INPUT.GetButtonPressed(KeyType::D)or _INPUT.GetButtonPressed(KeyType::Right)) AddRotation(_rotSpeed * deltaTime);
+	if (_physicsComp->GetIsPaused()) return;   // 발사 대기 중엔 조작 자체를 막는다
 
-	// Move (Up,Down)
-	//if (_INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up)) _pos += _forwardDir * _moveSpeed * deltaTime;
+	// Rotate (Right,Left)
+	if (_INPUT.GetButtonPressed(KeyType::A) or _INPUT.GetButtonPressed(KeyType::Left)) AddRotation(-_rotSpeed * deltaTime);
+	if (_INPUT.GetButtonPressed(KeyType::D) or _INPUT.GetButtonPressed(KeyType::Right)) AddRotation(_rotSpeed * deltaTime);
+	
 	_isThrusting = _INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up);
+	
+}
+
+void ASpaceship::Reset()
+{
+	SetRotation(0.f);
+	_physicsComp->Reset();
+	_isThrusting = false;
+	_keyInput = KeyType::L;
+	_trail.clear();
+	_trailSampleTimer = 0.f;
 }

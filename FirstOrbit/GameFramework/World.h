@@ -54,40 +54,52 @@ public:
     // (Overlap 콜백이 순회 중인 _actors를 직접 건드리면 반복자가 깨지므로)
     void DestroyActor(AActor* actor);
 
+
     AActor* GetActor(int idx) const { return _actors[idx]; }
     int32 GetActorCount() const { return _actors.size(); }
+    template<typename T = GameMode>
+    T* GetGameMode() const { return static_cast<T*>(_gameMode);}
+    Camera& GetCamera() { return _camera; }
 
-    GameMode* GetGameMode() const { return _gameMode; }
+
+protected:
+    // 이 World가 사용할 GameMode를 생성한다. 게임별 규칙은 이 함수를 오버라이드해서 교체한다.
+    virtual GameMode* CreateGameMode();
+    // World::OnGUI()가 _worldName 창을 열어둔 상태에서 호출해준다.
+    // 씬별 UI는 OnGUI()를 직접 오버라이드하지 말고 이걸 오버라이드해서 채운다
+    // (Begin()을 두 번 호출하지 않기 위함).
+    virtual void OnSceneGUI() {}
+    // ResourceData.json에서 이 World가 읽어올 섹션 이름 (기본값 "TileWorld").
+    // Title/Editor처럼 다른 텍스처 세트가 필요한 씬은 오버라이드해서 바꾼다.
+    virtual wstring GetResourceSectionName() const { return L"TileWorld"; }
+    void CheckOverlaps();
+    void ProcessPendingDestroy();
+    AActor* PickActor(Vector2 worldPos) const;
+
+
+private:
+    void RebuildGrid();
+    void GetCellRangeForActor(AActor* actor, int32& minX, int32& minY, int32& maxX, int32& maxY) const;
+    void CollectGridCandidates(AActor* actor, unordered_set<AActor*>& out) const;
+
+    // F1 디버그 모드에서 격자를 시각화한다. 전체 격자는 빨간색,
+    // 콜라이더를 가진 액터가 이번 프레임에 실제로 조회한 칸은 초록색으로 덧그린다.
+    void RenderDebugGrid(HDC hdc);
+
+    void loadResources();
+
+
+
 
 protected:
     vector<AActor*> _actors;
     string _worldName;
 
-    // 이 World가 사용할 GameMode를 생성한다. 게임별 규칙은 이 함수를 오버라이드해서 교체한다.
-    virtual GameMode* CreateGameMode();
     GameMode* _gameMode = nullptr;
 
-    // World::OnGUI()가 _worldName 창을 열어둔 상태에서 호출해준다.
-    // 씬별 UI는 OnGUI()를 직접 오버라이드하지 말고 이걸 오버라이드해서 채운다
-    // (Begin()을 두 번 호출하지 않기 위함).
-    virtual void OnSceneGUI() {}
-
-    // ResourceData.json에서 이 World가 읽어올 섹션 이름 (기본값 "TileWorld").
-    // Title/Editor처럼 다른 텍스처 세트가 필요한 씬은 오버라이드해서 바꾼다.
-    virtual wstring GetResourceSectionName() const { return L"TileWorld"; }
-
-    void CheckOverlaps();
-    void ProcessPendingDestroy();
-
     vector<AActor*> _pendingDestroy;
-
-    AActor* PickActor(Vector2 worldPos) const;
-
-public:
-    Camera& GetCamera() { return _camera; }
-
-protected:
     Camera _camera;
+
 
 private:
     // ---- 공간 분할 격자 ----
@@ -99,13 +111,4 @@ private:
 
     vector<AActor*> _grid[GridCols * GridRows];
 
-    void RebuildGrid();
-    void GetCellRangeForActor(AActor* actor, int32& minX, int32& minY, int32& maxX, int32& maxY) const;
-    void CollectGridCandidates(AActor* actor, unordered_set<AActor*>& out) const;
-
-    // F1 디버그 모드에서 격자를 시각화한다. 전체 격자는 빨간색,
-    // 콜라이더를 가진 액터가 이번 프레임에 실제로 조회한 칸은 초록색으로 덧그린다.
-    void RenderDebugGrid(HDC hdc);
-
-    void loadResources();
 };

@@ -17,6 +17,7 @@ protected:
 	virtual void OnSceneGUI() override;
 	virtual wstring GetResourceSectionName() const { return L"LaunchWorld"; }
 
+	virtual GameMode* CreateGameMode() override;
 
 private:
 	class ASpaceship* _ship = nullptr;

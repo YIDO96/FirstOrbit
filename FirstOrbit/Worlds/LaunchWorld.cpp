@@ -6,6 +6,9 @@
 
 #include "Actor/ASpaceship.h"
 
+#include "GameFramework/GameMode.h"
+#include "GameMode/LaunchGameMode.h"
+
 void LaunchWorld::Enter()
 {
 	Super::Enter();
@@ -17,12 +20,26 @@ void LaunchWorld::Enter()
 
 	_ship = SpawnActor<ASpaceship>();
 	_ship->SetCenterPos(Vector2(0.f, -10.f));
+	GetGameMode<LaunchGameMode>()->SetShip(_ship);
 }
 void LaunchWorld::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
 
-	if (_INPUT.GetButtonDown(KeyType::SpaceBar))
+	LaunchGameMode* launchGameMode = GetGameMode<LaunchGameMode>();
+	if (launchGameMode->GetLaunchState() == ELaunchState::Idle and
+		_INPUT.GetButtonDown(KeyType::SpaceBar))
+	{
+		launchGameMode->ChangeLaunchState(ELaunchState::Countdown);
+	}
+
+	if (_INPUT.GetButtonDown(KeyType::R))
+	{
+		launchGameMode->Reset();
+		_ship->SetCenterPos(Vector2(0.f, -10.f));   // 발사대 위치는 여전히 LaunchWorld 책임
+	}
+
+	if (_INPUT.GetButtonDown(KeyType::P))
 		WORLD.ChangeWorld("MainWorld");
 }
 void LaunchWorld::Render(HDC hdc)
@@ -48,5 +65,10 @@ void LaunchWorld::LoadTexture()
 }
 void LaunchWorld::OnSceneGUI()
 {
-	ImGui::Text("SpaceBar : MainWorld로");
+	ImGui::Text("P : MainWorld로");
+}
+
+GameMode* LaunchWorld::CreateGameMode()
+{
+	return new LaunchGameMode();
 }

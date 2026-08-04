@@ -13,6 +13,7 @@ void UPhysicsComponent::Init()
 
 void UPhysicsComponent::Update(float deltaTime)
 {
+	if (_isPaused) return;
 	//deltaTime *= 20.f;
 
 	_accumulator += deltaTime;

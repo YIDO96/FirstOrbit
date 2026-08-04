@@ -8,7 +8,7 @@ class Timer
 {
 public:
 	Timer(int32 id, bool loop, TimerFunc func, float interval) : _id(id), _loop(loop), _func(func), _interval(interval) {}
-	void Update(float deltaTime);
+	bool Update(float deltaTime);
 	bool IsExpired();
 	int32 GetId() const { return _id; }
 private:

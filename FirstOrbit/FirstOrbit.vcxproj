@@ -178,6 +178,7 @@
     <ClCompile Include="GameFramework\GameMode.cpp" />
     <ClCompile Include="GameFramework\Texture.cpp" />
     <ClCompile Include="GameFramework\World.cpp" />
+    <ClCompile Include="GameMode\LaunchGameMode.cpp" />
     <ClCompile Include="ImGui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -266,6 +267,7 @@
     <ClInclude Include="GameFramework\ObjectPool.h" />
     <ClInclude Include="GameFramework\Texture.h" />
     <ClInclude Include="GameFramework\World.h" />
+    <ClInclude Include="GameMode\LaunchGameMode.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
     <ClInclude Include="ImGui\ImGui_ImplGDI.h" />

@@ -23,12 +23,16 @@ public:
 	virtual void Render(HDC hdc) override;
 	virtual void OnGUI() override;
 
+	void Reset() { _velocity = Vector2(0.f, 0.f); _accumulator = 0.f; }
+
 
 	Vector2 ComputeAcceleration(const Vector2& pos, const Vector2& vel) const;
 	EIntergrator GetIntegrator() const { return _integrator; }
 
+	void SetPaused(bool isPause) { _isPaused = isPause; }
 	void SetVelocity(const Vector2& velocity) { _velocity = velocity; }
 	Vector2 GetVelocity() const { return _velocity; }
+	bool GetIsPaused() const { return _isPaused; }
 
 private:
 	void PhysicsStep(float deltaTime);
@@ -45,5 +49,6 @@ private:
 	static constexpr float FIXED_DT = 1.f / 240.f;
 	static constexpr int MAX_STEPS = 5;
 
+	bool _isPaused = true;
 };
 

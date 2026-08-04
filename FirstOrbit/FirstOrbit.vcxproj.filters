@@ -40,11 +40,14 @@
     <Filter Include="90. Resources\Sound">
       <UniqueIdentifier>{a970f837-d79c-43ac-8670-a989f7c199e2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="11. Actor">
-      <UniqueIdentifier>{003f18f0-2e63-43a6-b390-356414f4b07c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. GameFramework\Components">
       <UniqueIdentifier>{a871e994-0145-408b-8039-e0d8f1e7728f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="12. Actor">
+      <UniqueIdentifier>{003f18f0-2e63-43a6-b390-356414f4b07c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="11. GameMode">
+      <UniqueIdentifier>{658b1bb8-0fd9-4b85-b181-bccc46f6e244}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -156,14 +159,14 @@
       <Filter>99. Header</Filter>
     </ClCompile>
     <ClCompile Include="Actor\APlanet.cpp">
-      <Filter>11. Actor</Filter>
+      <Filter>12. Actor</Filter>
     </ClCompile>
     <ClCompile Include="Worlds\LaunchWorld.cpp">
       <Filter>10. Worlds</Filter>
     </ClCompile>
     <ClCompile Include="StarField.cpp" />
     <ClCompile Include="Actor\ASpaceship.cpp">
-      <Filter>11. Actor</Filter>
+      <Filter>12. Actor</Filter>
     </ClCompile>
     <ClCompile Include="GameFramework\Components\UAABBColliderComponent.cpp">
       <Filter>02. GameFramework\Components</Filter>
@@ -182,6 +185,9 @@
     </ClCompile>
     <ClCompile Include="GameFramework\Components\USpriteComponent.cpp">
       <Filter>02. GameFramework\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameMode\LaunchGameMode.cpp">
+      <Filter>11. GameMode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -309,14 +315,14 @@
       <Filter>99. Header</Filter>
     </ClInclude>
     <ClInclude Include="Actor\APlanet.h">
-      <Filter>11. Actor</Filter>
+      <Filter>12. Actor</Filter>
     </ClInclude>
     <ClInclude Include="Worlds\LaunchWorld.h">
       <Filter>10. Worlds</Filter>
     </ClInclude>
     <ClInclude Include="StarField.h" />
     <ClInclude Include="Actor\ASpaceship.h">
-      <Filter>11. Actor</Filter>
+      <Filter>12. Actor</Filter>
     </ClInclude>
     <ClInclude Include="GameFramework\Components\UAABBColliderComponent.h">
       <Filter>02. GameFramework\Components</Filter>
@@ -338,6 +344,9 @@
     </ClInclude>
     <ClInclude Include="GameFramework\Components\USpriteComponent.h">
       <Filter>02. GameFramework\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMode\LaunchGameMode.h">
+      <Filter>11. GameMode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
