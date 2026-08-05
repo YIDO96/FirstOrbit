@@ -3,6 +3,7 @@
 #include "GameFramework/UI/Widget.h"
 
 class UIText;
+class UIButton;
 
 class Widget_Title : public Widget
 {
@@ -16,6 +17,8 @@ public:
 	virtual void OnGUI();
 
 private:
-	UIText* _titleName = nullptr;
+	UIText* _titleName = nullptr; 
+	UIButton* _startButton = nullptr;
+	UIButton* _exitButton = nullptr;
 };
 

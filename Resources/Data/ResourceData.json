@@ -1,7 +1,8 @@
  {
-    "TileWorld": 
+    "TitleWorld": 
     {
-
+      "StartButton": { "fileName": "startButton.bmp", "transparent": [255, 0, 255]},
+      "ExitButton": { "fileName": "exitButton.bmp", "transparent": [255, 0, 255]}
     },
     "MainWorld":
     {

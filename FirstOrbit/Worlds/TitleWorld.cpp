@@ -14,6 +14,7 @@ void TitleWorld::Enter()
 
 	_camera.SetIsControll(false);
 	_titleWidget = UI.CreateWidget<Widget_Title>();
+	_titleWidget->SetOwnerWorld(this);
 }
 
 void TitleWorld::Update(float deltaTime)

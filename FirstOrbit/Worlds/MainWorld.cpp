@@ -132,7 +132,7 @@ void MainWorld::InitPlanet()
 
 		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 		APlanet* earth = SpawnActor<APlanet>();
-		earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.02f, /*mu*/ 	2.0e7f, /*bodyRadius*/ 1000.f, randomAngle);
+		earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.0f, /*mu*/ 	2.0e7f, /*bodyRadius*/ 1000.f, randomAngle);
 		earth->SetTexture(RESOURCE.GetTexture(L"Earth"));
 		_homePlanet = earth;
 		_camera.SetPosition(earth->GetCenterPos());

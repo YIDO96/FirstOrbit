@@ -71,7 +71,7 @@ using namespace std;
 
 
 // 윈도우 사이즈
-constexpr int32 GWinSizeX = 480;
+constexpr int32 GWinSizeX = 600;
 constexpr int32 GWinSizeY = 800;
 
 // 한 프레임 델타타임의 상한(초). 창 드래그·중단점·스톨로 dt가 폭증하면

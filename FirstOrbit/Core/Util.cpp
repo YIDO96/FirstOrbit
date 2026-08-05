@@ -2,6 +2,7 @@
 #include "Util.h"
 #include <numbers>  // C++20
 
+
 float RadianToDegree(float radian)
 {
 	float degree = radian * (180.0f / std::numbers::pi_v<float>);

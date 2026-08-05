@@ -31,10 +31,12 @@ public:
 	void ActiveEditMode() { _isEditMode = true; }
 	void DeActiveEditMode() { _isEditMode = false; }
 
+	void SetOwnerWorld(class World* world) { _ownerWorld = world; }
 	void SetActiveEidtMode(bool active) { _isEditMode = active; }
 	bool GetIsEditMode() const { return _isEditMode; }
 
 protected:
+	class World* _ownerWorld;
 	vector<UIBase*> _children;
 
 	Vector2 _mousePos;

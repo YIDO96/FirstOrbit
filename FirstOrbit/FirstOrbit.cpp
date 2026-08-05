@@ -195,7 +195,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_FIRSTORBIT));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hCursor        = LoadCursor(nullptr, IDC_CROSS);
     wcex.hbrBackground  = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_FIRSTORBIT);
     wcex.lpszClassName  = szWindowClass;
@@ -214,7 +214,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    // 윈도우 사이즈 결정: 게임 화면(GWinSizeX x GWinSizeY) + 오른쪽 ImGui 고정 패널
-   RECT windowRect = { 0, 0, GWinSizeX + GImGuiPanelWidth, GWinSizeY };
+   RECT windowRect = { 0, 0, GWinSizeX + GImGuiPanelWidth + 60, GWinSizeY };
    ::AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, true);
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,

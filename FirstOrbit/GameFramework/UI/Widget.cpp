@@ -10,8 +10,8 @@ Widget::~Widget()
 
 void Widget::Init()
 {
-    for (auto* child : _children)
-        child->Init();
+    //for (auto* child : _children)
+    //    child->Init();
 }
 
 void Widget::Update(float deltaTime)
