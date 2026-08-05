@@ -23,28 +23,9 @@ void LaunchGameMode::OnGUI()
 	{
 		ImGui::Text("GameMode : LaunchGameMode");
 		Super::OnGUI();
-		switch (_launchState)
-		{
-		case ELaunchState::Idle:
-			ImGui::Text("LaunchState: Idle");
-			break;
-		case ELaunchState::Countdown:
-			ImGui::Text("LaunchState: Countdown");
-			break;
-		case ELaunchState::Ascent:
-			ImGui::Text("LaunchState: Ascent");
-			break;
-		case ELaunchState::Failed:
-			ImGui::Text("LaunchState: Failed");
-			break;
-		case ELaunchState::Success:
-			ImGui::Text("LaunchState: Success");
-			break;
-		case ELaunchState::MAX_State:
-			break;
-		default:
-			break;
-		}
+
+		const char* stateNames[] = { "Idle", "Countdown", "Ascent", "Failed"};
+		ImGui::Text("LaunchState : %s", stateNames[(int32)_launchState]);
 
 		ImGui::TreePop();
 	}

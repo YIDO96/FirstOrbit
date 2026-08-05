@@ -49,6 +49,12 @@
     <Filter Include="11. GameMode">
       <UniqueIdentifier>{658b1bb8-0fd9-4b85-b181-bccc46f6e244}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02. GameFramework\UI">
+      <UniqueIdentifier>{65dd7652-4a03-473b-9096-7e2720b24e36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="13. Widget">
+      <UniqueIdentifier>{812fd10c-5a16-4ecd-aa71-6a26bf519bd7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="FirstOrbit.ico">
@@ -164,7 +170,6 @@
     <ClCompile Include="Worlds\LaunchWorld.cpp">
       <Filter>10. Worlds</Filter>
     </ClCompile>
-    <ClCompile Include="StarField.cpp" />
     <ClCompile Include="Actor\ASpaceship.cpp">
       <Filter>12. Actor</Filter>
     </ClCompile>
@@ -191,6 +196,27 @@
     </ClCompile>
     <ClCompile Include="GameMode\OrbitalGameMode.cpp">
       <Filter>11. GameMode</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor\StarField.cpp">
+      <Filter>12. Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\UIBase.cpp">
+      <Filter>02. GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\UI\UIImage.cpp">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\UI\UIButton.cpp">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\UI\UIText.cpp">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\UI\Widget.cpp">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Widget\Widget_Title.cpp">
+      <Filter>13. Widget</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -323,7 +349,6 @@
     <ClInclude Include="Worlds\LaunchWorld.h">
       <Filter>10. Worlds</Filter>
     </ClInclude>
-    <ClInclude Include="StarField.h" />
     <ClInclude Include="Actor\ASpaceship.h">
       <Filter>12. Actor</Filter>
     </ClInclude>
@@ -353,6 +378,27 @@
     </ClInclude>
     <ClInclude Include="GameMode\OrbitalGameMode.h">
       <Filter>11. GameMode</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor\StarField.h">
+      <Filter>12. Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\UIBase.h">
+      <Filter>02. GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\UI\UIImage.h">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\UI\UIButton.h">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\UI\UIText.h">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\UI\Widget.h">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Widget\Widget_Title.h">
+      <Filter>13. Widget</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

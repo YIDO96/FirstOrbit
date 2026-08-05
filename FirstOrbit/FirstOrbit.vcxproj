@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="Actor\APlanet.cpp" />
     <ClCompile Include="Actor\ASpaceship.cpp" />
+    <ClCompile Include="Actor\StarField.cpp" />
     <ClCompile Include="Core\DataManager.cpp" />
     <ClCompile Include="Core\DataObject.cpp" />
     <ClCompile Include="Core\GameInstance.cpp" />
@@ -177,6 +178,11 @@
     <ClCompile Include="GameFramework\Components\USpriteComponent.cpp" />
     <ClCompile Include="GameFramework\GameMode.cpp" />
     <ClCompile Include="GameFramework\Texture.cpp" />
+    <ClCompile Include="GameFramework\UIBase.cpp" />
+    <ClCompile Include="GameFramework\UI\UIButton.cpp" />
+    <ClCompile Include="GameFramework\UI\UIImage.cpp" />
+    <ClCompile Include="GameFramework\UI\UIText.cpp" />
+    <ClCompile Include="GameFramework\UI\Widget.cpp" />
     <ClCompile Include="GameFramework\World.cpp" />
     <ClCompile Include="GameMode\LaunchGameMode.cpp" />
     <ClCompile Include="GameMode\OrbitalGameMode.cpp" />
@@ -228,8 +234,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="StarField.cpp" />
     <ClCompile Include="Structs.cpp" />
+    <ClCompile Include="Widget\Widget_Title.cpp" />
     <ClCompile Include="Worlds\EditorWorld.cpp" />
     <ClCompile Include="Worlds\GameOverWorld.cpp" />
     <ClCompile Include="Worlds\LaunchWorld.cpp" />
@@ -239,6 +245,7 @@
   <ItemGroup>
     <ClInclude Include="Actor\APlanet.h" />
     <ClInclude Include="Actor\ASpaceship.h" />
+    <ClInclude Include="Actor\StarField.h" />
     <ClInclude Include="Core\DataManager.h" />
     <ClInclude Include="Core\DataObject.h" />
     <ClInclude Include="Core\GameInstance.h" />
@@ -267,6 +274,11 @@
     <ClInclude Include="GameFramework\GameMode.h" />
     <ClInclude Include="GameFramework\ObjectPool.h" />
     <ClInclude Include="GameFramework\Texture.h" />
+    <ClInclude Include="GameFramework\UIBase.h" />
+    <ClInclude Include="GameFramework\UI\UIButton.h" />
+    <ClInclude Include="GameFramework\UI\UIImage.h" />
+    <ClInclude Include="GameFramework\UI\UIText.h" />
+    <ClInclude Include="GameFramework\UI\Widget.h" />
     <ClInclude Include="GameFramework\World.h" />
     <ClInclude Include="GameMode\LaunchGameMode.h" />
     <ClInclude Include="GameMode\OrbitalGameMode.h" />
@@ -283,9 +295,9 @@
     <ClInclude Include="Json\nlohmann\json_fwd.hpp" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="StarField.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Widget\Widget_Title.h" />
     <ClInclude Include="Worlds\EditorWorld.h" />
     <ClInclude Include="Worlds\GameOverWorld.h" />
     <ClInclude Include="Worlds\LaunchWorld.h" />

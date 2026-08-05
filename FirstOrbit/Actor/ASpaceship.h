@@ -39,7 +39,7 @@ private:
 
 
 	//float _moveSpeed = 100.f;
-	float _thrust = 35.f;     // 초당 35픽셀 가속, 가속도 차원 [units/s^2], TWR(Thrust-to-Weight Ratio) 1.75
+	float _thrust = 25.f;     // 초당 25픽셀 가속, 가속도 차원 [units/s^2], TWR(Thrust-to-Weight Ratio) 1.75
 	float _rotSpeed = 90.f;   // 초당 90도
 
 	bool _isThrusting = false;	// 이번 프레임에 추력을 켰는지 체크

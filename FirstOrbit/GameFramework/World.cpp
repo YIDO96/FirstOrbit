@@ -7,6 +7,7 @@
 #include "Core/DataManager.h"
 #include "Core/ResourceData.h"
 #include "Core/InputManager.h"
+#include "Core/UIManager.h"
 
 #include "GameFramework/Texture.h"
 #include "GameFramework/AActor.h"
@@ -19,6 +20,8 @@ World::~World()
 
     for (AActor* a : _actors) delete a;
     _actors.clear();
+
+    UI.Clear();
 }
 
 GameMode* World::CreateGameMode()
@@ -36,11 +39,15 @@ void World::Enter()
     _gameMode->Init(this);
 
     _camera.Init(GWinSizeX, GWinSizeY);
+
+    UI.Init();
 }
 
 void World::Update(float deltaTime)
 {
     _camera.Update(deltaTime);
+
+    UI.Update(deltaTime);
 
     for (AActor* actor : _actors)
     {
@@ -185,6 +192,9 @@ void World::Render(HDC hdc)
     {
         //RenderDebugGrid(hdc);
     }
+
+
+    UI.Render(hdc);
 }
 
 void World::RenderDebugGrid(HDC hdc)
@@ -273,6 +283,13 @@ void World::OnGUI()
     ImGui::Text("World : %s", _worldName.c_str());
     OnSceneGUI();
 
+    if (_isWidgetEditToggle)
+    {
+        ImGui::Begin("Widget");
+        UI.OnGUI();
+        ImGui::End();
+    }
+
     ImGui::End();
     
     // NoBackground + RegisterUIBackgroundRect: GameInstance.h 주석 참고
@@ -287,6 +304,8 @@ void World::OnGUI()
     //    _gameMode->OnGUI();
     //
     //ImGui::End();
+    
+
 
     ImGui::Begin("World Hierarchy");
     

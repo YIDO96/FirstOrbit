@@ -14,13 +14,31 @@ public:
 	void Update(float deltaTime);
 	void Render(HDC hdc);
 
+	template <typename T>
+	T* CreateWidget()
+	{
+		T* widget = new T();
+		widget->Init();
+		
+		_widgets.push_back(widget);
+		return widget;
+	}
+
+	void Clear();
+
+	bool IsEidtMode();
+
+	void OnGUI();
+
+
+
 private:
 	// 아무나 생성못하게 생성자/소멸자를 숨기자
 	UIManager() = default;
 	~UIManager() = default;
 
 private:
-	class Texture* _hpTexture = nullptr;
+	vector<class Widget*> _widgets;
 };
 
 #define UI UIManager::GetInstance()

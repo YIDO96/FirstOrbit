@@ -12,6 +12,7 @@ public:
 	virtual void Render(HDC hdc) override;
 	virtual void LoadTexture() override;
 
+	virtual void ResetCamera(Vector2 pos) { _camera.SetPosition(pos); _camera.SetZoomImmediate(2.f); }
 
 protected:
 	virtual void OnSceneGUI() override;

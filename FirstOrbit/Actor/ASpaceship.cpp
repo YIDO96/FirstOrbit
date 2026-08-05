@@ -113,4 +113,5 @@ void ASpaceship::Reset()
 	_keyInput = KeyType::L;
 	_trail.clear();
 	_trailSampleTimer = 0.f;
+	_ownerWorld->ResetCamera(GetCenterPos());
 }

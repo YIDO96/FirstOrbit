@@ -54,6 +54,9 @@ public:
     // (Overlap 콜백이 순회 중인 _actors를 직접 건드리면 반복자가 깨지므로)
     void DestroyActor(AActor* actor);
 
+    virtual void ResetCamera(Vector2 pos) {}
+
+    void SetCameraPos(Vector2 pos) { _camera.SetPosition(pos); }
 
     AActor* GetActor(int idx) const { return _actors[idx]; }
     int32 GetActorCount() const { return _actors.size(); }
@@ -101,6 +104,8 @@ protected:
     Camera _camera;
 
 
+    bool _isWidgetEditToggle = false;
+
 private:
     // ---- 공간 분할 격자 ----
     // 콜라이더를 가진 모든 활성 액터를 후보로 등록/조회하는 범용 브로드페이즈.
@@ -111,4 +116,5 @@ private:
 
     vector<AActor*> _grid[GridCols * GridRows];
 
+    
 };

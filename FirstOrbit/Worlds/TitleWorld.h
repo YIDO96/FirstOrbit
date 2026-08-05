@@ -14,4 +14,7 @@ public:
 protected:
 	virtual void OnSceneGUI() override;
 	virtual wstring GetResourceSectionName() const override { return L"LobbyScene"; }
+
+private:
+	class Widget_Title* _titleWidget = nullptr;
 };

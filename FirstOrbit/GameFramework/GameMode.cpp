@@ -4,15 +4,6 @@
 
 void GameMode::OnGUI()
 {
-	switch (_state)
-	{
-	case EGameState::Playing:
-		ImGui::Text("GameState : Playing");
-		break;
-	case EGameState::GameOver:
-		ImGui::Text("GameState : GameOver");
-		break;
-	default:
-		break;
-	}
+	const char* stateNames[] = { "Playing", "GameOver" };
+	ImGui::Text("GameModeState : %s", stateNames[(int32)_state]);
 }
