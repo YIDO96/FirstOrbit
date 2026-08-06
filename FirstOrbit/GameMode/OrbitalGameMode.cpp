@@ -17,25 +17,27 @@ void OrbitalGameMode::Update(float deltaTime)
 
 	if (_orbitState != EOrbitState::Flying) return;
 
-	// 현재 위치와 속도, 표준 중력변수(mu) 구하기
+	// 현재 위치와 속도, 표준 중력변수(mu)
 	Vector2 r = _ship->GetCenterPos() - home->GetCenterPos();
 	Vector2 v = _ship->GetComponent<UPhysicsComponent>()->GetVelocity();
 	float mu = home->GetMu();
 
-	// 비에너지 구하기
+	// 비에너지
 	_eps = 0.5f * v.LengthSquared() - mu / r.Length();
-	// 비각운동량 or 단위질량당 각운동량 (h) 구하기
+	// 비각운동량 (h, 단위 질량 당 운동량)
 	float h = r.Cross(v);
 
+
 	_isEscaping = (_eps >= 0.f);
-
 	bool crashedNow = r.Length() < home->GetBodyRadius(); 
-
 
 	if (not _isEscaping)
 	{
+		// 장반경 ( 타원 궤도에서 긴 지름의 절반값)
 		float a = -mu / (2.f * _eps);
+		// 이심률
 		_eccentricity = sqrtf(max(0, 1 + (2.f * _eps * h * h) / (mu * mu)));
+		// 근지점 & 원지점
 		_perigee = a * (1.f - _eccentricity);
 		_apogee	 = a * (1.f + _eccentricity);
 

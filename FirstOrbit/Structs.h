@@ -174,12 +174,7 @@ struct Matrix3x3
 		{0.0f, 0.0f, 0.0f},
 		{0.0f, 0.0f, 0.0f}
 	};
-	
-
-
 	Matrix3x3() = default;
-
-
 	// 영행렬
 	static Matrix3x3 ZeroMatrix()
 	{
@@ -190,7 +185,6 @@ struct Matrix3x3
 
 		return mat;
 	}
-
 	// 항등 행렬
 	static Matrix3x3 Identity()
 	{
@@ -203,9 +197,6 @@ struct Matrix3x3
 	}
 
 	// 이동 행렬
-	// [ 1  0  tx]
-	// [ 0  1  ty]
-	// [ 0  0  1 ]
 	static Matrix3x3 Translate(const Vector2& t)
 	{
 		Matrix3x3 mat = Identity();
@@ -215,9 +206,6 @@ struct Matrix3x3
 	}
 
 	// 크기 행렬
-	// [ sx  0   0 ]
-	// [ 0  sy   0 ]
-	// [ 0   0   1 ]
 	static Matrix3x3 Scale(const Vector2& s)
 	{
 		Matrix3x3 mat = Identity();
@@ -233,11 +221,7 @@ struct Matrix3x3
 		return mat;
 	}
 
-
 	// 회전 행렬
-	// [ cos -sin  0 ]
-	// [ sin  cos  0 ]
-	// [  0    0   1 ]
 	static Matrix3x3 Rotate(float rad)
 	{
 		Matrix3x3 mat = Identity();
@@ -430,12 +414,10 @@ struct Matrix3x3
 
 		return result;
 	}
-
 	friend Matrix3x3 operator*(float scalar, const Matrix3x3& mat)
 	{
 		return mat * scalar;
 	}
-
 	Matrix3x3 operator*(const Matrix3x3& M) const
 	{
 		Matrix3x3 mat;
@@ -468,7 +450,6 @@ struct Matrix3x3
 		float y = m[1][0] * p.x + m[1][1] * p.y + m[1][2] * 1.f;
 		return Vector2(x, y);
 	}
-
 	// TransformVector
 	// 벡터 변환 : (x, y, 0)T 곱셈 -> 이동 무시
 	Vector2 TransformVector(const Vector2& v) const

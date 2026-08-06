@@ -172,6 +172,5 @@ void UPhysicsComponent::PhysicsStep(float deltaTime)
 		GetOwner()->SetCenterPos(newPos);
 		_velocity = newVel;
 
-
 	}
 }
