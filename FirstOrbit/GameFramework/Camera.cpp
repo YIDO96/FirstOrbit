@@ -39,16 +39,10 @@ void Camera::Update(float deltaTime)
 }
 void Camera::UpdateViewMatrix()
 {
-	_view = _view.Translate(_half) *
-			_view.Scale(_zoom) * 
-			_view.Rotate(_rotation + _manualRotation) *
+	_view = _view.Translate(_half) * 
+			_view.Scale(_zoom) * 	
+			_view.Rotate(_rotation + _manualRotation) *	
 			_view.Translate(-_position);
-	
-	//Matrix3x3 viewA = viewA.Translate(_half) * viewA.Scale(_zoom) * 
-	//					viewA.Rotate(0.f) * viewA.Translate(-posA);
-	//Matrix3x3 viewB = viewB.Translate(_half) * viewB.Scale(_zoom) * 
-	//					viewB.Rotate(3.14159f) * viewB.Translate(-posB);
-
 
 	_invView = _view.Inverse();
 }
@@ -73,8 +67,6 @@ void Camera::UpdateZoom(float deltaTime)
 	{
 		bool zoomingIn = (_targetZoom > _zoom);
 
-		//float a = std::exp(-k * deltaTime);
-		//_zoom *= std::pow(_targetZoom / _zoom, 1.f - a);
 		Vector2 before;
 		if (zoomingIn)
 		{

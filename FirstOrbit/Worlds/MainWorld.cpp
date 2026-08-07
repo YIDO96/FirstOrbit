@@ -40,8 +40,8 @@ void MainWorld::Enter()
 	if (GAME.ConsumeLaunchHandoff(handoff))
 	{
 		Vector2 launchOrigin = _homePlanet->GetCenterPos() + Vector2(0.f, -_homePlanet->GetBodyRadius());
-		_ship->SetCenterPos(launchOrigin + handoff.position);
-		//_ship->SetCenterPos(_homePlanet->GetCenterPos() + handoff.position);
+		//_ship->SetCenterPos(launchOrigin + handoff.position);
+		_ship->SetCenterPos(_homePlanet->GetCenterPos() + handoff.position);
 		_ship->SetRotation(handoff.degree);
 		_ship->GetComponent<UPhysicsComponent>()->SetVelocity(handoff.velocity);
 	}

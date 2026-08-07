@@ -86,6 +86,8 @@ void LaunchWorld::LoadTexture()
 void LaunchWorld::OnSceneGUI()
 {
 	ImGui::Text("P : MainWorld로");
+	Vector2 v = _ship->GetComponent<UPhysicsComponent>()->GetVelocity();
+	ImGui::Text("수평속도: %.1f / 목표 ~100", v.x);
 }
 
 GameMode* LaunchWorld::CreateGameMode()
