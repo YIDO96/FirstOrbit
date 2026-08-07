@@ -132,11 +132,13 @@ void Texture::Render(HDC hdc, Vector2 renderPos, Vector2 srcPos, Vector2 srcSize
 	}
 }
 
-void Texture::RenderRotated(HDC hdc, Vector2 centerPos, float radian)
+void Texture::RenderRotated(HDC hdc, Vector2 centerPos, float radian, Vector2 destSize)
 {
+	if (destSize == Vector2()) destSize = GetTextureSize();
+
 	// 회전 전 로컬 기준의 3개 꼭짓점 계산 좌상, 우상, 좌하 순
-	float halfX = _bitmapSizeX / 2.f;
-	float halfY = _bitmapSizeY / 2.f;
+	float halfX = destSize.x / 2.f;
+	float halfY = destSize.y / 2.f;
 
 	Vector2 localCorners[3] = {
 		{ -halfX, -halfY }, // 좌상

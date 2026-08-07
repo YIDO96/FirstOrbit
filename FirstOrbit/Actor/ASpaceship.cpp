@@ -2,7 +2,9 @@
 #include "ASpaceship.h"
 
 #include "Core/InputManager.h"
+#include "Core/ResourceManager.h"
 #include "GameFramework/Camera.h"
+#include "GameFramework/Texture.h"
 #include "GameFramework/World.h"
 #include "GameFramework/Components/UPhysicsComponent.h"
 
@@ -15,7 +17,7 @@ void ASpaceship::Init()
 
 
 	_physicsComp = AddComponent<UPhysicsComponent>();
-
+	SetTexture(RESOURCE.GetTexture(L"Spaceship"));
 
 }
 void ASpaceship::Update(float deltaTime)
@@ -39,27 +41,35 @@ void ASpaceship::Render(HDC hdc)
 
 	Camera& cam = _ownerWorld->GetCamera();
 
-	// 기체를 자기 각도로 돌리고 → 월드 위치로 옮기고 → 뷰 변환
-	Matrix3x3 M = cam.GetViewMatrix()
-		* Matrix3x3::Translate(GetCenterPos())
-		* Matrix3x3::Rotate(DegreeToRadian(GetDegree()));
-
-
-	POINT pts[3];
-	for (int i = 0; i < 3; ++i)
+	if (_texture)
 	{
-		Vector2 p = M.TransformPoint(_localPoints[i]);
-		pts[i].x = (long)p.x;
-		pts[i].y = (long)p.y;
+		Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
+		Vector2 destSize(cam.WorldToScreenScale(_size.x), cam.WorldToScreenScale(_size.y));
+		_texture->RenderRotated(hdc, screenPos, DegreeToRadian(GetDegree()), destSize);
+
 	}
 
-	HBRUSH brush = ::CreateSolidBrush(RGB(220, 220, 240));
-	HBRUSH oldBrush = (HBRUSH)::SelectObject(hdc, brush);
+	// 기체를 자기 각도로 돌리고 → 월드 위치로 옮기고 → 뷰 변환
+	//Matrix3x3 M = cam.GetViewMatrix()
+	//	* Matrix3x3::Translate(GetCenterPos())
+	//	* Matrix3x3::Rotate(DegreeToRadian(GetDegree()));
 
-	::Polygon(hdc, pts, 3);
 
-	::SelectObject(hdc, oldBrush);
-	::DeleteObject(brush);
+	//POINT pts[3];
+	//for (int i = 0; i < 3; ++i)
+	//{
+	//	Vector2 p = M.TransformPoint(_localPoints[i]);
+	//	pts[i].x = (long)p.x;
+	//	pts[i].y = (long)p.y;
+	//}
+	//
+	//HBRUSH brush = ::CreateSolidBrush(RGB(220, 220, 240));
+	//HBRUSH oldBrush = (HBRUSH)::SelectObject(hdc, brush);
+
+	//::Polygon(hdc, pts, 3);
+	//
+	//::SelectObject(hdc, oldBrush);
+	//::DeleteObject(brush);
 
 	COLORREF color = RGB(255, 255, 0);
 	if (_physicsComp)

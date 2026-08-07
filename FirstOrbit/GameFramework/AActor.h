@@ -54,7 +54,7 @@ public:
 	void SetPos(Vector2 pos)			{ _pos = pos; }
 	// 중심 좌표로 배치한다 (콜라이더들이 GetCenterPos()를 '중심'으로 사용하므로 규칙을 맞춘다).
 	void SetCenterPos(Vector2 centerPos){ _pos = Vector2(centerPos.x - _size.x / 2, centerPos.y - _size.y / 2); _center = centerPos; }
-
+	void SetTexture(class Texture* texture) { _texture = texture; }
 	// 액터의 회전을 '한 번에' 설정한다. _degree/_forwardDir/_rightDir를 함께 갱신해
 	// 셋이 항상 일치하도록 만드는 단일 진입점이다 (개별 필드를 직접 건드리지 말 것).
 	void SetRotation(float degree);
@@ -84,6 +84,7 @@ public:
 
 protected:
 	World* _ownerWorld			= nullptr;
+	class Texture* _texture		= nullptr;
 	EActorType _type			= EActorType::None;
 	string _name				= "";
 

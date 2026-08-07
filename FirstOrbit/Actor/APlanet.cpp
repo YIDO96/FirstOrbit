@@ -13,6 +13,7 @@ void APlanet::Init()
 	_circleCollider = AddComponent<UCircleColliderComponent>();
 	_collider = _circleCollider;
 	
+	_texture;
 	//collider->Init(this, BALL_SIZE / 2);
 	//collider->SetCheckCell(true);
 }
@@ -26,11 +27,11 @@ void APlanet::Update(float deltaTime)
 }
 void APlanet::Render(HDC hdc)
 {
-	Super::Render(hdc);
-
 	Camera& cam = _ownerWorld->GetCamera();
 	Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
 	float r = cam.WorldToScreenScale(_bodyRadius);
+
+	Super::Render(hdc);
 
 	if (_texture)
 	{

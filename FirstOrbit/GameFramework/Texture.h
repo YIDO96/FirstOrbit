@@ -11,7 +11,7 @@ public:
 			Vector2 srcSize = Vector2(), Vector2 destSize = Vector2());
 
 	// 회전 각도(라디안)를 받아 회전 렌더링을 수행
-	void RenderRotated(HDC hdc, Vector2 centerPos, float radian);
+	void RenderRotated(HDC hdc, Vector2 centerPos, float radian, Vector2 destSize = Vector2());
 
 	Vector2 GetTextureSize() const { return Vector2(_bitmapSizeX, _bitmapSizeY); }
 

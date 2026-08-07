@@ -14,7 +14,7 @@ public:
 	virtual void OnGUI() override;
 
 	void Setup(string name, Vector2 orbitCenter, float orbitRadius, float orbitSpeed, float mu, float bodyRadius, float initialAngle = 0.0f);
-	void SetTexture(class Texture* texture) { _texture = texture; }
+	//void SetTexture(class Texture* texture) { _texture = texture; }
 
 	
 	float GetBodyRadius() const { return _bodyRadius; }
@@ -28,5 +28,5 @@ private:
 	float _bodyRadius = 0;		// 행성 자체의 반지름
 
 	class UCircleColliderComponent* _circleCollider = nullptr;
-	class Texture* _texture = nullptr;
+	//class Texture* _texture = nullptr;
 };
