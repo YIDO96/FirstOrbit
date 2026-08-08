@@ -14,6 +14,9 @@ public:
 
 	virtual void ResetCamera(Vector2 pos) { _camera.SetPosition(pos); _camera.SetZoomImmediate(2.f); }
 
+
+	class Widget_Launch* GetWidget()  { return _launchWidget; }
+
 protected:
 	virtual void OnSceneGUI() override;
 	virtual wstring GetResourceSectionName() const { return L"LaunchWorld"; }
@@ -22,4 +25,6 @@ protected:
 
 private:
 	class ASpaceship* _ship = nullptr;
+
+	class Widget_Launch* _launchWidget = nullptr;
 };

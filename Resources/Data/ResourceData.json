@@ -3,14 +3,20 @@
     {
       "StartButton": { "fileName": "startButton.bmp", "transparent": [255, 0, 255]},
       "ExitButton": { "fileName": "exitButton.bmp", "transparent": [255, 0, 255]},
-      "Spaceship": {"fileName": "SpaceShip.bmp", "transparent": [255, 0, 255]}
+      "ButtonBG": {"fileName": "ButtonBG.bmp", "transparent": [255, 0, 255]}
+    },
+    "LaunchWorld":
+    {
+      "Spaceship": {"fileName": "SpaceShip.bmp", "transparent": [255, 0, 255]},
+      "ButtonBG": {"fileName": "ButtonBG.bmp", "transparent": [255, 0, 255]}
     },
     "MainWorld":
     {
       "BG": { "fileName": "SpaceBG.bmp" },
       "Sun":  {"fileName":  "Sun.bmp", "transparent": [255, 0, 255]},
       "Earth":  {"fileName":  "Earth.bmp", "transparent": [255, 0, 255]},
-      "Spaceship": {"fileName": "SpaceShip.bmp", "transparent": [255, 0, 255]}
+      "Spaceship": {"fileName": "SpaceShip.bmp", "transparent": [255, 0, 255]},
+      "ButtonBG": {"fileName": "ButtonBG.bmp", "transparent": [255, 0, 255]}
     },
     "Sound":
     {

@@ -15,7 +15,7 @@ void OrbitalGameMode::Update(float deltaTime)
 
 	if (not home) return;
 
-	if (_orbitState != EOrbitState::Flying) return;
+	if (_orbitState == EOrbitState::Failed) return;
 
 	// 현재 위치와 속도, 표준 중력변수(mu)
 	Vector2 r = _ship->GetCenterPos() - home->GetCenterPos();
@@ -52,7 +52,7 @@ void OrbitalGameMode::Update(float deltaTime)
 	{
 		if (crashedNow || _isEscaping)
 			_orbitState = EOrbitState::Failed;
-		else if (_perigee > home->GetBodyRadius() && _eccentricity < 0.5f)
+		else if (_perigee > (home->GetBodyRadius() + 200.f) && _eccentricity < 0.5f)
 			_orbitState = EOrbitState::Cleared;
 	}
 
@@ -82,7 +82,7 @@ void OrbitalGameMode::OnGUI()
 
 		ImGui::Text("v(속도) : %.2f", v.Length());
 		ImGui::Text("eps(비에너지) : %.2f", _eps);
-		ImGui::Text("a(반장 축) : %.1f", _a);
+		ImGui::Text("a(장반경) : %.1f", _a);
 		ImGui::Text("eccentricity(이심률) : %.1f", _eccentricity);
 		ImGui::Text("perigee(근지점) : %.1f", _perigee);
 		ImGui::Text("apogee(원지점) : %.1f", _apogee);

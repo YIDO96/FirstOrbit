@@ -27,7 +27,7 @@ void MainWorld::Enter()
 	LoadTexture();
 	
 	_camera.SetIsControll(true);
-	_camera.SetZoomImmediate(0.01f);
+	
 
 
 	InitPlanet();
@@ -54,7 +54,7 @@ void MainWorld::Enter()
 	GetGameMode<OrbitalGameMode>()->SetShip(_ship);
 	_homePlanet = _ship->GetTargetPlanet();
 	_camera.SetFollowTarget(_ship);					// 관찰하기 쉽게 카메라 붙여두기
-
+	_camera.SetZoomImmediate(0.3f);
 
 	_starField = new StarField();
 	_starField->Init(20000, 500000.f);

@@ -3,6 +3,7 @@
 
 #include "Core/InputManager.h"
 #include "GameFramework/Texture.h"
+#include "GameFramework/UI/UIText.h"
 
 void UIButton::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
 {
@@ -15,7 +16,19 @@ void UIButton::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
     SetSize(size.x, size.y);
     SetPos(pos.x, pos.y);
 
-    originSize = Vector2(_width, _height);
+    _originSize = Vector2(_width, _height);
+    _originFontSize = 40.f;
+}
+
+void UIButton::SetText(EParentAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text)
+{
+    _text = new UIText();
+    _text->SetParentUI(this);
+    _text->SetText(text);
+    _text->InitButton(anchor, pivot, Vector2(pos.x, pos.y - 5), size);
+    _text->SetFontSize(_originFontSize);
+    COLORREF color = RGB(42, 176, 183);
+    _text->SetTextColor(color);
 }
 
 void UIButton::Update(float deltaTime)
@@ -33,7 +46,12 @@ void UIButton::Update(float deltaTime)
     // 클릭 감지 (좌클릭)
     if (IsHoverInUI(_INPUT.GetMousePos()))
     {
-        SetSize(originSize.x * 1.1f, originSize.y * 1.1f);
+        SetSize(_originSize.x * _hoverRate, _originSize.y * _hoverRate);
+        
+        if (_text)
+        {
+            _text->SetFontSize(_originFontSize * _hoverRate);
+        }
 
         if (_INPUT.GetButtonDown(KeyType::LeftMouse))
         {
@@ -42,8 +60,18 @@ void UIButton::Update(float deltaTime)
     }
     else
     {
-        SetSize(originSize.x, originSize.y);
+        SetSize(_originSize.x, _originSize.y);
+        if (_text)
+        {
+            _text->SetFontSize(_originFontSize);
+        }
     }
+
+    if (_text)
+    {
+        _text->Update(deltaTime);
+    }
+   
 }
 
 void UIButton::Render(HDC hdc)
@@ -53,5 +81,8 @@ void UIButton::Render(HDC hdc)
     if (!_texture) return;
 
     _texture->Render(hdc, Vector2(_finalX, _finalY), Vector2(), Vector2(), Vector2(_width, _height));
-
+    if (_text)
+    {
+        _text->Render(hdc);
+    }
 }

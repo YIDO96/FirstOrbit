@@ -2,6 +2,10 @@
 
 #include "GameFramework/UIBase.h"
 
+
+class UIText;
+class Texture;
+
 class UIButton : public UIBase
 {
 	using Super = UIBase;
@@ -16,13 +20,17 @@ public:
 
 	void SetOnClick(OnClickCallback callback) { _onClick = callback; }
 	void SetTexture(class Texture* texture) { _texture = texture; }
+	void SetText(EParentAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text = L"Text");
 
 	Texture* GetTexture() const { return _texture; }
+	UIText* GetText() const { return _text; }
 private:
 	OnClickCallback _onClick;
 
-	class Texture* _texture = nullptr;
-	Vector2 originSize = Vector2();
-	//class UIText* _text = nullptr;
+	Texture* _texture = nullptr;
+	UIText* _text = nullptr;
+	Vector2 _originSize = Vector2();
+	float _originFontSize = 0.f;
+	float _hoverRate = 1.1f;
 };
 

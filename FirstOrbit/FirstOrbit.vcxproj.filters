@@ -218,6 +218,9 @@
     <ClCompile Include="Widget\Widget_Title.cpp">
       <Filter>13. Widget</Filter>
     </ClCompile>
+    <ClCompile Include="Widget\Widget_Launch.cpp">
+      <Filter>13. Widget</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\DataManager.h">
@@ -398,6 +401,9 @@
       <Filter>02. GameFramework\UI</Filter>
     </ClInclude>
     <ClInclude Include="Widget\Widget_Title.h">
+      <Filter>13. Widget</Filter>
+    </ClInclude>
+    <ClInclude Include="Widget\Widget_Launch.h">
       <Filter>13. Widget</Filter>
     </ClInclude>
   </ItemGroup>

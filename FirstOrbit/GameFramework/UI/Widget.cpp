@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Widget.h"
 
+#include "Core/WorldManager.h"
+
 Widget::~Widget()
 {
     for (auto* child : _children)
@@ -12,6 +14,8 @@ void Widget::Init()
 {
     //for (auto* child : _children)
     //    child->Init();
+
+    _ownerWorld = WORLD.GetWorld();
 }
 
 void Widget::Update(float deltaTime)

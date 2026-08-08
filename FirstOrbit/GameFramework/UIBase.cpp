@@ -57,6 +57,25 @@ void UIBase::SetAnchor(EAnchor anchor)
 	}
 }
 
+void UIBase::SetParentAnchor(EParentAnchor parentanchor, UIBase* parent)
+{
+	_parentAnchor = parentanchor;
+
+	switch (_parentAnchor)
+	{
+	case EParentAnchor::LeftTop:		_anchorX = parent->_finalX;							_anchorY = parent->_finalY;							break;
+	case EParentAnchor::Top:			_anchorX = parent->_finalX + parent->_width / 2;	_anchorY = parent->_finalY;							break;
+	case EParentAnchor::RightTop:		_anchorX = parent->_finalX + parent->_width;		_anchorY = parent->_finalY;							break;
+	case EParentAnchor::Left:			_anchorX = parent->_finalX;							_anchorY = parent->_finalY + parent->_height / 2;	break;
+	case EParentAnchor::Center:			_anchorX = parent->_finalX + parent->_width / 2;	_anchorY = parent->_finalY + parent->_height / 2;	break;
+	case EParentAnchor::Right:			_anchorX = parent->_finalX + parent->_width;		_anchorY = parent->_finalY + parent->_height / 2;	break;
+	case EParentAnchor::LeftBottom:		_anchorX = parent->_finalX;							_anchorY = parent->_finalY + parent->_height;		break;
+	case EParentAnchor::Bottom:			_anchorX = parent->_finalX + parent->_width / 2;	_anchorY = parent->_finalY + parent->_height;		break;
+	case EParentAnchor::RightBottom:	_anchorX = parent->_finalX + parent->_width;		_anchorY = parent->_finalY + parent->_height;		break;
+	default:																																	break;
+	}
+}
+
 void UIBase::SetPivot(EPivot pivot)
 {
 	_pivot = pivot;

@@ -160,41 +160,47 @@ void Texture::RenderRotated(HDC hdc, Vector2 centerPos, float radian, Vector2 de
 	// _maskBitmap 없이 투명키 배경을 지우며 회전한다.
 	if (_transparent != -1)
 	{
-		// 회전된 이미지가 안전하게 다 들어갈 수 있도록 넉넉한 크기의 임시 버퍼 생성
-		int32 tempSizeX = (int32)(_bitmapSizeX * 1.5f);
-		int32 tempSizeY = (int32)(_bitmapSizeY * 1.5f);
+		//// 회전된 이미지가 안전하게 다 들어갈 수 있도록 넉넉한 크기의 임시 버퍼 생성
+		//int32 tempSizeX = (int32)(_bitmapSizeX * 1.5f);
+		//int32 tempSizeY = (int32)(_bitmapSizeY * 1.5f);
+
+		// 회전 시 이미지가 빠져나가지 않도록 충분한 비트맵 대각선 크기 계산
+		int32 maxDim = static_cast<int32>(sqrt(destSize.x * destSize.x + destSize.y * destSize.y)) + 4;
+
 
 		HDC tempDC = ::CreateCompatibleDC(hdc);
-		HBITMAP tempBitmap = ::CreateCompatibleBitmap(hdc, tempSizeX, tempSizeY);
+		HBITMAP tempBitmap = ::CreateCompatibleBitmap(hdc, maxDim, maxDim);
 		HBITMAP oldTemp = (HBITMAP)::SelectObject(tempDC, tempBitmap);
 
 		// 임시 버퍼의 배경을 투명 키값으로 통일해서 채워둔다.
 		HBRUSH bgBrush = ::CreateSolidBrush(_transparent);
-		RECT r = { 0, 0, tempSizeX,tempSizeY };
+		RECT r = { 0, 0, maxDim,maxDim };
 		::FillRect(tempDC, &r, bgBrush);
 		::DeleteObject(bgBrush);
 
 		// 임시 버퍼 내부의 정중앙에 회전된 꼭짓점이 맺히도록 오프셋 좌표 보정
 		POINT rotatedDestPoints[3];
-		float offsetX = tempSizeX / 2.f;
-		float offsetY = tempSizeY / 2.f;
+		//float offsetX = tempSizeX / 2.f;
+		//float offsetY = tempSizeY / 2.f;
+		float tempHalf = maxDim / 2.f;
 
 		for (int i = 0; i < 3; ++i)
 		{
 			Vector2 rotatePos = localCorners[i].Rotate(radian);
-			rotatedDestPoints[i].x = static_cast<long>(rotatePos.x + offsetX);
-			rotatedDestPoints[i].y = static_cast<long>(rotatePos.y + offsetY);
+			rotatedDestPoints[i].x = static_cast<long>(rotatePos.x + tempHalf);
+			rotatedDestPoints[i].y = static_cast<long>(rotatePos.y + tempHalf);
 		}
 
+		::SetStretchBltMode(tempDC, COLORONCOLOR);
 		// TransparentBlt로 임시 버퍼에 원본을 회전 없이 정방향으로 복사한다.
 		::PlgBlt(tempDC, rotatedDestPoints, _bitmapHdc, 0, 0, _bitmapSizeX, _bitmapSizeY, NULL, 0, 0);
 
 		// 배경 처리가 끝난 tempDC 자체를 PlgBlt로 회전 출력한다.
-		int32 drawX = (int32)(centerPos.x - offsetX);
-		int32 drawY = (int32)(centerPos.y - offsetY);
+		int32 drawX = (int32)(centerPos.x - tempHalf);
+		int32 drawY = (int32)(centerPos.y - tempHalf);
 
-		::TransparentBlt(hdc, drawX, drawY, tempSizeX, tempSizeY,
-			tempDC, 0, 0, tempSizeX, tempSizeY, _transparent);
+		::TransparentBlt(hdc, drawX, drawY, maxDim, maxDim,
+			tempDC, 0, 0, maxDim, maxDim, _transparent);
 
 		::SelectObject(tempDC, oldTemp);
 		::DeleteObject(tempBitmap);
@@ -202,6 +208,7 @@ void Texture::RenderRotated(HDC hdc, Vector2 centerPos, float radian, Vector2 de
 	}
 	else
 	{
+		::SetStretchBltMode(hdc, COLORONCOLOR);
 		// 투명 키값이 없는 이미지라면 마스크 없이 원본 그대로 바로 PlgBlt 회전 수행
 		::PlgBlt(hdc, destPoints, _bitmapHdc, 0, 0, _bitmapSizeX, _bitmapSizeY, NULL, 0, 0);
 	}

@@ -12,9 +12,11 @@ public:
 	~UIText() { if (_hFont) ::DeleteObject(_hFont); }
 
 	virtual void Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size) override;
+	void InitButton(EParentAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size);
 	virtual void Update(float deltaTime) override;
 	virtual void Render(HDC hdc) override;
 	virtual void OnGUI() override;
+
 
 	virtual void SetSize(float w, float h) override;
 	void SetFontSize(float size);
@@ -30,5 +32,6 @@ private:
 	float _fontSize = 20.f;
 	HFONT _hFont = nullptr;
 	COLORREF _textColor = RGB(255, 255, 255);
+
 };
 

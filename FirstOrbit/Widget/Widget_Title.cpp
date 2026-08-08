@@ -12,26 +12,29 @@
 
 void Widget_Title::Init()
 {
+	Super::Init();
+
 	_titleName = AddChild<UIText>();
 	_titleName->SetText(L"FirstOrbit");
 	_titleName->Init(EAnchor::Top, EPivot::Center, Vector2(0, 100), Vector2(100, 30));
 	_titleName->SetFontSize(60.f);
 
-	Texture* startTex = RESOURCE.GetTexture(L"StartButton");
+	Texture* buttonTex = RESOURCE.GetTexture(L"ButtonBG");
 
 	_startButton = AddChild<UIButton>();
-	_startButton->SetTexture(startTex);
-	_startButton->Init(EAnchor::Center, EPivot::Center, Vector2(0, 0), startTex->GetTextureSize() * 1.5f);
+	_startButton->SetTexture(buttonTex);
+	Vector2 startButtonSize = buttonTex->GetTextureSize() * 1.5f;
+	_startButton->Init(EAnchor::Center, EPivot::Center, Vector2(0, 0), startButtonSize);
+	_startButton->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 0), startButtonSize, L"Start");
 	_startButton->SetOnClick([]()
 		{
 			WORLD.ChangeWorld("LaunchWorld");
 		});
 
-
-	Texture* exitTex = RESOURCE.GetTexture(L"ExitButton");
 	_exitButton = AddChild<UIButton>();
-	_exitButton->SetTexture(exitTex);
-	_exitButton->Init(EAnchor::Center, EPivot::Center, Vector2(0, 100), exitTex->GetTextureSize() * 1.5f);
+	_exitButton->SetTexture(buttonTex);
+	_exitButton->Init(EAnchor::Center, EPivot::Center, Vector2(0, 100), buttonTex->GetTextureSize() * 1.5f);
+	_exitButton->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 0), startButtonSize, L"Exit");
 	_exitButton->SetOnClick([]()
 		{
 			PostQuitMessage(0);
@@ -40,22 +43,13 @@ void Widget_Title::Init()
 
 void Widget_Title::Update(float deltaTime)
 {
-	//_titleName->Update(deltaTime);
-	//_startButton->Update(deltaTime);
-	for (auto* child : _children)
-	{
-		child->Update(deltaTime);
-	}
+	Super::Update(deltaTime);
+
 }
 
 void Widget_Title::Render(HDC hdc)
 {
-	//_titleName->Render(hdc);
-	//_startButton->Render(hdc);
-	for (auto* child : _children)
-	{
-		child->Render(hdc);
-	}
+	Super::Render(hdc);
 }
 
 void Widget_Title::OnGUI()

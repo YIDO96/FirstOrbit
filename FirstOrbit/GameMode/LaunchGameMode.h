@@ -23,7 +23,7 @@ public :
 	virtual void OnGUI() override;
 
 	void ChangeLaunchState(ELaunchState newState);
-
+	void UpdateTextByState();
 	void Reset();
 
 	void SetShip(class ASpaceship* ship) { _ship = ship; }
@@ -33,6 +33,8 @@ private:
 	class ASpaceship* _ship = nullptr;
 
 	int32 _countdownTimerId = -1;
+	float _countdownTimer = 3.f;
+	string str;
 
 	ELaunchState _launchState = ELaunchState::Idle;
 	vector<string> stateName = { "Idle", "Countdown", "Ascent", "Failed", "Success" };

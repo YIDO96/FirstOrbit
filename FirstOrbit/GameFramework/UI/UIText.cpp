@@ -11,6 +11,16 @@ void UIText::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
 	SetPos(pos.x, pos.y);
 }
 
+void UIText::InitButton(EParentAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
+{
+	_parentAnchor = anchor;
+
+	SetParentAnchor(anchor, _parent);
+	SetPivot(pivot);
+	SetSize(size.x, size.y);
+	SetPos(pos.x, pos.y);
+}
+
 void UIText::Update(float deltaTime)
 {
 }

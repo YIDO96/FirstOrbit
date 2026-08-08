@@ -15,6 +15,21 @@ enum class EAnchor
 	RightBottom
 };
 
+enum class EParentAnchor
+{
+	LeftTop,
+	Top,
+	RightTop,
+
+	Left,
+	Center,
+	Right,
+
+	LeftBottom,
+	Bottom,
+	RightBottom
+};
+
 enum class EPivot
 {
 	LeftTop,
@@ -43,6 +58,7 @@ public:
 
 	bool IsHoverInUI(Vector2 mousePos);
 
+	void SetParentUI(UIBase* parent) { _parent = parent; }
 	void SetPos(float x, float y);
 	virtual void SetSize(float w, float h);
 	void SetActive(bool active) { _isActive = active; }
@@ -50,6 +66,7 @@ public:
 	void SetTransparent(bool transparent) { _isTransparent = transparent; }
 
 	void SetAnchor(EAnchor anchor);
+	void SetParentAnchor(EParentAnchor parentanchor, UIBase* parent);
 	void SetPivot(EPivot pivot);
 
 	Vector2 GetPos() { return Vector2(_finalX, _finalY); }
@@ -60,6 +77,8 @@ public:
 	string GetName() const { return _name; }
 
 protected:
+	UIBase* _parent = nullptr;
+
 	float _x = 0.f, _y = 0.f;
 	float _anchorX = 0.f, _anchorY = 0.f;
 	float _pivotRatioX = 0.f, _pivotRatioY = 0.f;
@@ -68,6 +87,7 @@ protected:
 	bool _isActive = true;
 
 	EAnchor _anchor = EAnchor::LeftTop;
+	EParentAnchor _parentAnchor = EParentAnchor::Center;
 	EPivot _pivot = EPivot::LeftTop;
 
 	string _name = "";

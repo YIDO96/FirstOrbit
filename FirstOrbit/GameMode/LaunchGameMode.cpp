@@ -3,9 +3,12 @@
 
 #include "Core/TimeManager.h"
 #include "Core/InputManager.h"
+#include "Core/WorldManager.h"
 
 #include "Gameframework/Components/UPhysicsComponent.h"
 #include "Actor/ASpaceship.h"
+#include "Worlds/LaunchWorld.h"
+#include "Widget/Widget_Launch.h"
 
 void LaunchGameMode::Update(float deltaTime)
 {
@@ -14,6 +17,13 @@ void LaunchGameMode::Update(float deltaTime)
 	if (_launchState == ELaunchState::Ascent and _ship and _ship->GetCenterPos().y > 0.f)
 	{
 		ChangeLaunchState(ELaunchState::Failed);
+	}
+
+	if (_launchState == ELaunchState::Countdown)
+	{
+		_countdownTimer -= deltaTime;
+		str = to_string((int32)_countdownTimer + 1);
+		UpdateTextByState();
 	}
 }
 
@@ -44,13 +54,32 @@ void LaunchGameMode::ChangeLaunchState(ELaunchState newState)
 		_ship->GetComponent<UPhysicsComponent>()->SetPaused(shouldPause);
 	}
 
+
 	if (newState == ELaunchState::Countdown)
 	{
 		_countdownTimerId  = TIME.AddTimer([this]()
 			{
 				ChangeLaunchState(ELaunchState::Ascent);
-			}, 3.f);
+				_countdownTimer = 3.f;
+			}, _countdownTimer);
 	}
+	UpdateTextByState();
+}
+
+void LaunchGameMode::UpdateTextByState()
+{
+	if (not _world) return;
+	LaunchWorld* world = static_cast<LaunchWorld*>(_world);
+
+	int32 timer = (int32)_countdownTimer;
+
+
+	const char* stateNames[] = { "Awaiting Launch", str.c_str(), "Launching", "Failed" , "", ""};
+	std::wstring text = CharToWStringStandard(stateNames[(int32)_launchState]);
+
+
+	world->GetWidget()->SetStateText(text);
+	world->GetWidget()->ReSizeStateText();
 }
 
 void LaunchGameMode::Reset()
