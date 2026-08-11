@@ -96,6 +96,8 @@ Vector2 UPhysicsComponent::ComputeAcceleration(const Vector2& pos, const Vector2
 		r2 = r * r;
 
 		a += dir * (targetPlanet->GetMu() / (r2 * r));
+
+		a += targetPlanet->GetAcceleration();
 	}
 	else
 	{

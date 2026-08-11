@@ -28,6 +28,8 @@ public:
 
 	void SetShip(ASpaceship* ship) { _ship = ship; }
 
+	void ResetJudgment() { _orbitState = EOrbitState::Flying; _graceTimer = 0.f; _isWarning = false; }
+
 	vector<Vector2> PredictPath(int steps, float dt) const;
 
 private:

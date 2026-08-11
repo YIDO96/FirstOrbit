@@ -10,9 +10,6 @@
     <Filter Include="02. GameFramework">
       <UniqueIdentifier>{dde86735-a089-440b-bff8-e108305031f3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="10. Worlds">
-      <UniqueIdentifier>{5c58d948-e2e7-4a29-9f52-206eaf933903}</UniqueIdentifier>
-    </Filter>
     <Filter Include="97. Json">
       <UniqueIdentifier>{4dc5e463-b105-4d81-b8e9-44d32d0dc2cf}</UniqueIdentifier>
     </Filter>
@@ -43,17 +40,23 @@
     <Filter Include="02. GameFramework\Components">
       <UniqueIdentifier>{a871e994-0145-408b-8039-e0d8f1e7728f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="12. Actor">
-      <UniqueIdentifier>{003f18f0-2e63-43a6-b390-356414f4b07c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="11. GameMode">
-      <UniqueIdentifier>{658b1bb8-0fd9-4b85-b181-bccc46f6e244}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. GameFramework\UI">
       <UniqueIdentifier>{65dd7652-4a03-473b-9096-7e2720b24e36}</UniqueIdentifier>
     </Filter>
-    <Filter Include="13. Widget">
+    <Filter Include="20. Actor">
+      <UniqueIdentifier>{003f18f0-2e63-43a6-b390-356414f4b07c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="21. Widget">
       <UniqueIdentifier>{812fd10c-5a16-4ecd-aa71-6a26bf519bd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="11. Worlds">
+      <UniqueIdentifier>{5c58d948-e2e7-4a29-9f52-206eaf933903}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="12. GameMode">
+      <UniqueIdentifier>{658b1bb8-0fd9-4b85-b181-bccc46f6e244}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="10. GameSystem">
+      <UniqueIdentifier>{9348d589-675f-4adf-9f7f-5f396e7ac2f0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -123,16 +126,16 @@
       <Filter>02. GameFramework</Filter>
     </ClCompile>
     <ClCompile Include="Worlds\EditorWorld.cpp">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClCompile>
     <ClCompile Include="Worlds\GameOverWorld.cpp">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClCompile>
     <ClCompile Include="Worlds\MainWorld.cpp">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClCompile>
     <ClCompile Include="Worlds\TitleWorld.cpp">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui.cpp">
       <Filter>98. ImGui</Filter>
@@ -165,13 +168,13 @@
       <Filter>99. Header</Filter>
     </ClCompile>
     <ClCompile Include="Actor\APlanet.cpp">
-      <Filter>12. Actor</Filter>
+      <Filter>20. Actor</Filter>
     </ClCompile>
     <ClCompile Include="Worlds\LaunchWorld.cpp">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClCompile>
     <ClCompile Include="Actor\ASpaceship.cpp">
-      <Filter>12. Actor</Filter>
+      <Filter>20. Actor</Filter>
     </ClCompile>
     <ClCompile Include="GameFramework\Components\UAABBColliderComponent.cpp">
       <Filter>02. GameFramework\Components</Filter>
@@ -192,13 +195,13 @@
       <Filter>02. GameFramework\Components</Filter>
     </ClCompile>
     <ClCompile Include="GameMode\LaunchGameMode.cpp">
-      <Filter>11. GameMode</Filter>
+      <Filter>12. GameMode</Filter>
     </ClCompile>
     <ClCompile Include="GameMode\OrbitalGameMode.cpp">
-      <Filter>11. GameMode</Filter>
+      <Filter>12. GameMode</Filter>
     </ClCompile>
     <ClCompile Include="Actor\StarField.cpp">
-      <Filter>12. Actor</Filter>
+      <Filter>20. Actor</Filter>
     </ClCompile>
     <ClCompile Include="GameFramework\UIBase.cpp">
       <Filter>02. GameFramework</Filter>
@@ -216,10 +219,16 @@
       <Filter>02. GameFramework\UI</Filter>
     </ClCompile>
     <ClCompile Include="Widget\Widget_Title.cpp">
-      <Filter>13. Widget</Filter>
+      <Filter>21. Widget</Filter>
     </ClCompile>
     <ClCompile Include="Widget\Widget_Launch.cpp">
-      <Filter>13. Widget</Filter>
+      <Filter>21. Widget</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSystem\Glow.cpp">
+      <Filter>10. GameSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSystem\SpaceLightingSystem.cpp">
+      <Filter>10. GameSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -284,16 +293,16 @@
       <Filter>02. GameFramework</Filter>
     </ClInclude>
     <ClInclude Include="Worlds\EditorWorld.h">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClInclude>
     <ClInclude Include="Worlds\GameOverWorld.h">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClInclude>
     <ClInclude Include="Worlds\MainWorld.h">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClInclude>
     <ClInclude Include="Worlds\TitleWorld.h">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClInclude>
     <ClInclude Include="Json\nlohmann\json.hpp">
       <Filter>97. Json\nlohmann</Filter>
@@ -347,13 +356,13 @@
       <Filter>99. Header</Filter>
     </ClInclude>
     <ClInclude Include="Actor\APlanet.h">
-      <Filter>12. Actor</Filter>
+      <Filter>20. Actor</Filter>
     </ClInclude>
     <ClInclude Include="Worlds\LaunchWorld.h">
-      <Filter>10. Worlds</Filter>
+      <Filter>11. Worlds</Filter>
     </ClInclude>
     <ClInclude Include="Actor\ASpaceship.h">
-      <Filter>12. Actor</Filter>
+      <Filter>20. Actor</Filter>
     </ClInclude>
     <ClInclude Include="GameFramework\Components\UAABBColliderComponent.h">
       <Filter>02. GameFramework\Components</Filter>
@@ -377,13 +386,13 @@
       <Filter>02. GameFramework\Components</Filter>
     </ClInclude>
     <ClInclude Include="GameMode\LaunchGameMode.h">
-      <Filter>11. GameMode</Filter>
+      <Filter>12. GameMode</Filter>
     </ClInclude>
     <ClInclude Include="GameMode\OrbitalGameMode.h">
-      <Filter>11. GameMode</Filter>
+      <Filter>12. GameMode</Filter>
     </ClInclude>
     <ClInclude Include="Actor\StarField.h">
-      <Filter>12. Actor</Filter>
+      <Filter>20. Actor</Filter>
     </ClInclude>
     <ClInclude Include="GameFramework\UIBase.h">
       <Filter>02. GameFramework</Filter>
@@ -401,10 +410,16 @@
       <Filter>02. GameFramework\UI</Filter>
     </ClInclude>
     <ClInclude Include="Widget\Widget_Title.h">
-      <Filter>13. Widget</Filter>
+      <Filter>21. Widget</Filter>
     </ClInclude>
     <ClInclude Include="Widget\Widget_Launch.h">
-      <Filter>13. Widget</Filter>
+      <Filter>21. Widget</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSystem\Glow.h">
+      <Filter>10. GameSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSystem\SpaceLightingSystem.h">
+      <Filter>10. GameSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

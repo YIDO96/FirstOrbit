@@ -11,13 +11,14 @@
 #include "Actor/APlanet.h"
 #include "Actor/ASpaceship.h"
 
+#include "GameSystem/SpaceLightingSystem.h"
 #include "GameMode/OrbitalGameMode.h"
 
 #include "Actor/StarField.h"
 
 MainWorld::~MainWorld()
 {
-	delete _starField;
+	//delete _starField;
 }
 
 void MainWorld::Enter()
@@ -43,11 +44,12 @@ void MainWorld::Enter()
 		//_ship->SetCenterPos(launchOrigin + handoff.position);
 		_ship->SetCenterPos(_homePlanet->GetCenterPos() + handoff.position);
 		_ship->SetRotation(handoff.degree);
-		_ship->GetComponent<UPhysicsComponent>()->SetVelocity(handoff.velocity);
+		_ship->GetComponent<UPhysicsComponent>()->SetVelocity(handoff.velocity + _homePlanet->GetVelocity());
 	}
 	else
 	{
 		_ship->SetCenterPos(_homePlanet->GetCenterPos() + Vector2(0.f, -1300.f));
+		_ship->GetComponent<UPhysicsComponent>()->SetVelocity(_homePlanet->GetVelocity());
 	}
 
 	_ship->GetComponent<UPhysicsComponent>()->SetPaused(false);
@@ -56,8 +58,13 @@ void MainWorld::Enter()
 	_camera.SetFollowTarget(_ship);					// 관찰하기 쉽게 카메라 붙여두기
 	_camera.SetZoomImmediate(0.3f);
 
-	_starField = new StarField();
-	_starField->Init(20000, 500000.f);
+	//_starField = new StarField();
+	//_starField->Init(20000, 500000.f);
+	_lightingSystem = new SpaceLightingSystem();
+	HDC hdc = ::GetDC(GAME.GetHwnd());
+	_lightingSystem->Initialize(hdc, GWinSizeX, GWinSizeY);
+	::ReleaseDC(GAME.GetHwnd(), hdc);
+	_lightingSystem->GenerateStarfield(20000, 500000.f);
 
 }
 
@@ -89,13 +96,24 @@ void MainWorld::Update(float deltaTime)
 		Vector2 perp(-dir.y, dir.x);				// 반지름에 수직
 		
 		_ship->SetCenterPos(center + dir * r);
-		physics->SetVelocity(perp * speed);
+		physics->SetVelocity(perp * speed + _homePlanet->GetVelocity());
+		GetGameMode<OrbitalGameMode>()->ResetJudgment();
 	}
 }
 
 void MainWorld::Render(HDC hdc)
 {
-	_starField->Render(hdc, _camera);
+	//_starField->Render(hdc, _camera);
+
+	_lightingSystem->BeginRender(_camera);
+	_lightingSystem->RenderSunGlow(_camera.WorldToScreen(_sun->GetCenterPos()),
+		_camera.WorldToScreenScale(_sun->GetBodyRadius() * 15.f), 140);
+	_lightingSystem->ApplyPlanetShadow(
+		_camera.WorldToScreen(_sun->GetCenterPos()),
+		_camera.WorldToScreen(_homePlanet->GetCenterPos()),
+		_camera.WorldToScreenScale(_homePlanet->GetBodyRadius()));
+
+	_lightingSystem->EndRender(hdc);
 
 	Super::Render(hdc);
 
@@ -119,6 +137,7 @@ void MainWorld::InitPlanet()
 		APlanet* sun = SpawnActor<APlanet>();
 		sun->Setup("Sun", Vector2(0, 0), 0.f, 0.f, 2.88e9f, 12000.f);
 		sun->SetTexture(RESOURCE.GetTexture(L"Sun"));
+		_sun = sun;
 
 		float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 		APlanet* mercury = SpawnActor<APlanet>();//0.032f
@@ -132,7 +151,7 @@ void MainWorld::InitPlanet()
 
 		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
 		APlanet* earth = SpawnActor<APlanet>();
-		earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.0f, /*mu*/ 	2.0e7f, /*bodyRadius*/ 1000.f, randomAngle);
+		earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.02f, /*mu*/ 	2.0e7f, /*bodyRadius*/ 1000.f, randomAngle);
 		earth->SetTexture(RESOURCE.GetTexture(L"Earth"));
 		_homePlanet = earth;
 		_camera.SetPosition(earth->GetCenterPos());

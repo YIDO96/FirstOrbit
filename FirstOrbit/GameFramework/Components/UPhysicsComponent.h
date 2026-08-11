@@ -51,7 +51,7 @@ private:
 	// 고정 시간 스텝 시뮬레이션
 	float _accumulator = 0.f;
 	static constexpr float FIXED_DT = 1.f / 240.f;
-	static constexpr int MAX_STEPS = 5;
+	static constexpr int MAX_STEPS = 25;
 
 	bool _isPaused = true;
 };

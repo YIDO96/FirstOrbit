@@ -109,3 +109,19 @@ void APlanet::Setup(string name, Vector2 orbitCenter, float orbitRadius, float o
 
 	_circleCollider->SetRadius(_bodyRadius);
 }
+
+Vector2 APlanet::GetVelocity() const
+{
+	return Vector2(-sinf(_angle), cosf(_angle)) * (_orbitRadius * _orbitSpeed);
+}
+
+Vector2 APlanet::GetAcceleration() const
+{
+	return (_orbitCenter - GetCenterPos()) * (_orbitSpeed * _orbitSpeed);
+}
+
+Vector2 APlanet::GetFuturePos(float t) const
+{
+	float futureAngle = _angle + _orbitSpeed * t;
+	return _orbitCenter + Vector2(cosf(futureAngle), sinf(futureAngle)) * _orbitRadius;
+}

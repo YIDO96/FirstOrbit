@@ -15,11 +15,11 @@ void OrbitalGameMode::Update(float deltaTime)
 
 	if (not home) return;
 
-	if (_orbitState == EOrbitState::Failed) return;
+	//if (_orbitState == EOrbitState::Failed) return;
 
 	// 현재 위치와 속도, 표준 중력변수(mu)
 	Vector2 r = _ship->GetCenterPos() - home->GetCenterPos();
-	Vector2 v = _ship->GetComponent<UPhysicsComponent>()->GetVelocity();
+	Vector2 v = _ship->GetComponent<UPhysicsComponent>()->GetVelocity() - home->GetVelocity();
 	float mu = home->GetMu();
 
 	// 비에너지
@@ -59,8 +59,8 @@ void OrbitalGameMode::Update(float deltaTime)
 	_isWarning = doomed;
 	 
 
-	if (_orbitState == EOrbitState::Failed)
-		_ship->GetComponent<UPhysicsComponent>()->SetPaused(true);
+	//if (_orbitState == EOrbitState::Failed)
+	//	_ship->GetComponent<UPhysicsComponent>()->SetPaused(true);
 
 }
 
@@ -93,31 +93,63 @@ void OrbitalGameMode::OnGUI()
 
 vector<Vector2> OrbitalGameMode::PredictPath(int steps, float dt) const
 {
+	//vector<Vector2> path;
+	//if (not _ship) return path;
+	//APlanet* home = _ship->GetTargetPlanet();
+	//if (not home) return path;
+	//
+	//OrbitState ghost{ _ship->GetCenterPos(), _ship->GetComponent<UPhysicsComponent>()->GetVelocity() };
+	//float mu = home->GetMu();
+	//path.reserve(steps);
+	//
+	//for (int i = 0; i < steps; ++i)
+	//{
+	//	Vector2 dir = home->GetCenterPos() - ghost.pos;
+	//	float r2 = dir.LengthSquared();
+	//	float r = max(sqrtf(r2), home->GetBodyRadius());
+	//
+	//	r2 = r * r;
+	//
+	//	Vector2 a = dir * (mu / (r2 * r));
+	//
+	//	ghost.vel += a * dt;
+	//	ghost.pos += ghost.vel * dt;
+	//
+	//	path.push_back(ghost.pos);
+	//}
+	//
+	//
+	//return path;
+
 	vector<Vector2> path;
 	if (not _ship) return path;
 	APlanet* home = _ship->GetTargetPlanet();
 	if (not home) return path;
 
-	OrbitState ghost{ _ship->GetCenterPos(), _ship->GetComponent<UPhysicsComponent>()->GetVelocity() };
+	// 지구 기준 상대좌표로 적분한다 (지구의 위치/속도/가속도가 필요 없음 - 조석력 상쇄와 동일한 이유)
+	Vector2 relPos = _ship->GetCenterPos() - home->GetCenterPos();
+	Vector2 relVel = _ship->GetComponent<UPhysicsComponent>()->GetVelocity() - home->GetVelocity();
 	float mu = home->GetMu();
 	path.reserve(steps);
 
+	// 지구의 "현재" 화면 위치에 상대궤도 모양을 겹쳐서 보여준다.
+	// (지구가 미래에 실제로 어디 있을지는 중요하지 않음 - 지구가 빠르게 공전하면
+	//  GetFuturePos()로는 100초 안에 지구 자체가 수만 유닛 이동해버려서 예측선이
+	//  화면 밖으로 순식간에 사라짐. 플레이어가 보고 싶은 건 "궤도의 모양"뿐이다.)
+	Vector2 homePos = home->GetCenterPos();
 	for (int i = 0; i < steps; ++i)
 	{
-		Vector2 dir = home->GetCenterPos() - ghost.pos;
-		float r2 = dir.LengthSquared();
+		float r2 = relPos.LengthSquared();
 		float r = max(sqrtf(r2), home->GetBodyRadius());
-
 		r2 = r * r;
 
-		Vector2 a = dir * (mu / (r2 * r));
+		Vector2 a = relPos * (-mu / (r2 * r));   // 원점(지구)을 향하는 방향
 
-		ghost.vel += a * dt;
-		ghost.pos += ghost.vel * dt;
+		relVel += a * dt;
+		relPos += relVel * dt;
 
-		path.push_back(ghost.pos);
+		path.push_back(relPos + homePos);
 	}
-
 
 	return path;
 }

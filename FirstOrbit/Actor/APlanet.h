@@ -19,6 +19,10 @@ public:
 	
 	float GetBodyRadius() const { return _bodyRadius; }
 	float GetMu() const { return _mu; }
+	Vector2 GetVelocity() const;
+	Vector2 GetAcceleration() const;
+	Vector2 GetFuturePos(float t) const;   // t초 뒤 위치를 즉시 계산 (닫힌 형태, 오차 없음)
+
 private:
 	Vector2 _orbitCenter;		// 공전 중심점의 월드좌표
 	float _orbitRadius = 0;		// 공전 중심에서 행성까지의 거리
