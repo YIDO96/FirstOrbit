@@ -60,9 +60,9 @@ bool Glow::Create(int size, COLORREF color)
 	return true;
 }
 
-void Glow::Render(HDC hdcDest, const Vector2& centerPos, float radius, BYTE intensity)
+bool Glow::Render(HDC hdcDest, const Vector2& centerPos, float radius, BYTE intensity)
 {
-	if (not _hdc) return;
+	if (not _hdc) return true;
 
 	int destSize = (int)(radius * 2.f);
 	int destX = (int)(centerPos.x - radius);
@@ -74,7 +74,8 @@ void Glow::Render(HDC hdcDest, const Vector2& centerPos, float radius, BYTE inte
 	bf.SourceConstantAlpha = intensity;
 	bf.AlphaFormat = AC_SRC_ALPHA;
 
-	AlphaBlend(hdcDest, destX, destY, destSize, destSize, _hdc, 0, 0, _size, _size, bf);
+	//AlphaBlend(hdcDest, destX, destY, destSize, destSize, _hdc, 0, 0, _size, _size, bf);
+	return AlphaBlend(hdcDest, destX, destY, destSize, destSize, _hdc, 0, 0, _size, _size, bf) != FALSE;
 }
 
 void Glow::Destroy()

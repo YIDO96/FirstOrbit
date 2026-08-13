@@ -20,6 +20,7 @@ public:
 
 	virtual void LoadTexture() override;
 	void InitPlanet();
+	void UpdateUIData();
 
 protected:
 	virtual void OnSceneGUI() override;
@@ -40,4 +41,7 @@ private:
 
 	class APlanet* _homePlanet = nullptr;
 	class ASpaceship* _ship = nullptr;
+	class ABlackHole* _blackHole = nullptr;
+
+	class Widget_Main* _widget = nullptr;
 };

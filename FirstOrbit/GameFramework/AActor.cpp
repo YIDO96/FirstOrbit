@@ -4,6 +4,9 @@
 #include "Components/UActorComponent.h"
 #include "Components/UColliderComponent.h"
 
+#include "GameFramework/World.h"
+#include "GameFramework/Camera.h"
+
 AActor::~AActor()
 {
 	for (UActorComponent* c : _components)
@@ -47,6 +50,27 @@ void AActor::Render(HDC hdc)
 
 void AActor::OnGUI()
 {
-	for (UActorComponent* c : _components)
-		c->OnGUI();
+	_isOpenGUI = ImGui::TreeNode((void*)this, "%s", _name.c_str());
+
+	if (ImGui::IsItemHovered() and ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+	{
+		OnImGuiDoubleClick();
+	}
+
+
+	if (_isOpenGUI)
+	{
+		for (UActorComponent* c : _components)
+			c->OnGUI();
+
+		//ImGui::TreePop();
+	}
+
+	
+}
+
+void AActor::OnImGuiDoubleClick()
+{
+	//_ownerWorld->SetCameraPos(GetCenterPos());
+	_ownerWorld->SetCameraOnGUIDoubleClickedEvent(this);
 }

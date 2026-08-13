@@ -14,6 +14,9 @@ Texture::~Texture()
 		::DeleteObject(_bitmap);
 	if (_maskBitmap)
 		::DeleteObject(_maskBitmap);
+
+	if (_tempBitmap) ::DeleteObject(_tempBitmap);
+	if (_tempDC) ::DeleteDC(_tempDC);
 }
 
 void Texture::Load(wstring texturePath, int32 transparent)
@@ -167,22 +170,30 @@ void Texture::RenderRotated(HDC hdc, Vector2 centerPos, float radian, Vector2 de
 		// 회전 시 이미지가 빠져나가지 않도록 충분한 비트맵 대각선 크기 계산
 		int32 maxDim = static_cast<int32>(sqrt(destSize.x * destSize.x + destSize.y * destSize.y)) + 4;
 
+		if (not _tempDC or maxDim > _tempDim)
+		{
+			if (_tempDC) { ::DeleteDC(_tempDC); _tempDC = nullptr; }
+			if (_tempBitmap) { ::DeleteObject(_tempBitmap); _tempBitmap = nullptr; }
 
-		HDC tempDC = ::CreateCompatibleDC(hdc);
-		HBITMAP tempBitmap = ::CreateCompatibleBitmap(hdc, maxDim, maxDim);
-		HBITMAP oldTemp = (HBITMAP)::SelectObject(tempDC, tempBitmap);
+			_tempDim = maxDim;
+			_tempDC = ::CreateCompatibleDC(hdc);
+			_tempBitmap = ::CreateCompatibleBitmap(hdc, _tempDim, _tempDim);
+			::SelectObject(_tempDC, _tempBitmap);
+		}
+		
 
 		// 임시 버퍼의 배경을 투명 키값으로 통일해서 채워둔다.
+		// (아래부터는 전부 _tempDim(실제 버퍼 크기) 기준으로 통일한다 — maxDim은 "키울지 판단"에만 쓴다.
+		//  캐시된 버퍼가 이전 호출보다 커서 재사용되는 경우, maxDim만 쓰면 버퍼의 일부만 채우고/중심을 잘못 잡아서
+		//  지워지지 않은 이전 내용이 같이 블릿되는 버그가 있었다.)
 		HBRUSH bgBrush = ::CreateSolidBrush(_transparent);
-		RECT r = { 0, 0, maxDim,maxDim };
-		::FillRect(tempDC, &r, bgBrush);
+		RECT r = { 0, 0, _tempDim, _tempDim };
+		::FillRect(_tempDC, &r, bgBrush);
 		::DeleteObject(bgBrush);
 
 		// 임시 버퍼 내부의 정중앙에 회전된 꼭짓점이 맺히도록 오프셋 좌표 보정
 		POINT rotatedDestPoints[3];
-		//float offsetX = tempSizeX / 2.f;
-		//float offsetY = tempSizeY / 2.f;
-		float tempHalf = maxDim / 2.f;
+		float tempHalf = _tempDim / 2.f;
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -191,20 +202,20 @@ void Texture::RenderRotated(HDC hdc, Vector2 centerPos, float radian, Vector2 de
 			rotatedDestPoints[i].y = static_cast<long>(rotatePos.y + tempHalf);
 		}
 
-		::SetStretchBltMode(tempDC, COLORONCOLOR);
+		::SetStretchBltMode(_tempDC, COLORONCOLOR);
 		// TransparentBlt로 임시 버퍼에 원본을 회전 없이 정방향으로 복사한다.
-		::PlgBlt(tempDC, rotatedDestPoints, _bitmapHdc, 0, 0, _bitmapSizeX, _bitmapSizeY, NULL, 0, 0);
+		::PlgBlt(_tempDC, rotatedDestPoints, _bitmapHdc, 0, 0, _bitmapSizeX, _bitmapSizeY, NULL, 0, 0);
 
 		// 배경 처리가 끝난 tempDC 자체를 PlgBlt로 회전 출력한다.
 		int32 drawX = (int32)(centerPos.x - tempHalf);
 		int32 drawY = (int32)(centerPos.y - tempHalf);
 
-		::TransparentBlt(hdc, drawX, drawY, maxDim, maxDim,
-			tempDC, 0, 0, maxDim, maxDim, _transparent);
+		::TransparentBlt(hdc, drawX, drawY, _tempDim, _tempDim,
+			_tempDC, 0, 0, _tempDim, _tempDim, _transparent);
 
-		::SelectObject(tempDC, oldTemp);
-		::DeleteObject(tempBitmap);
-		::DeleteDC(tempDC);
+		//::SelectObject(tempDC, oldTemp);
+		//::DeleteObject(tempBitmap);
+		//::DeleteDC(tempDC);
 	}
 	else
 	{

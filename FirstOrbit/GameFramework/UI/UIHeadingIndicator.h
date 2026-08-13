@@ -2,18 +2,16 @@
 
 #include "GameFramework/UIBase.h"
 
-class UIImage : public UIBase
+class UIHeadingIndicator : public UIBase
 {
 	using Super = UIBase;
-
 public:
-	UIImage(class Texture* texture) : _texture(texture) {}
-
 	virtual void Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text = L"") override;
-	virtual void Update(float deltaTime) override;
 	virtual void Render(HDC hdc) override;
 
+	void SetHeading(float radian) { _heading = radian; }   // 0 = 화면 위쪽
+
 private:
-	class Texture* _texture = nullptr;
+	float _heading = 0.f;
 };
 

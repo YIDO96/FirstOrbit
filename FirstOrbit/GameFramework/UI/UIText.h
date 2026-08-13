@@ -11,7 +11,7 @@ public:
 	UIText(const std::wstring& text) : _text(text) { SetTransparent(true); }
 	~UIText() { if (_hFont) ::DeleteObject(_hFont); }
 
-	virtual void Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size) override;
+	virtual void Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text) override;
 	void InitButton(EParentAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size);
 	virtual void Update(float deltaTime) override;
 	virtual void Render(HDC hdc) override;

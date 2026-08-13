@@ -13,7 +13,7 @@ public:
 	virtual void LoadTexture() override;
 
 	virtual void ResetCamera(Vector2 pos) { _camera.SetPosition(pos); _camera.SetZoomImmediate(2.f); }
-
+	COLORREF ComputeRayleighSkyColor(float density);
 
 	class Widget_Launch* GetWidget()  { return _launchWidget; }
 
@@ -27,4 +27,10 @@ private:
 	class ASpaceship* _ship = nullptr;
 
 	class Widget_Launch* _launchWidget = nullptr;
+
+	float _altitude = 0.f;
+
+	static constexpr float kSpaceAltitude = 10000.f;
+
+	class StarField* _stars = nullptr;
 };

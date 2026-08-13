@@ -230,6 +230,18 @@
     <ClCompile Include="GameSystem\SpaceLightingSystem.cpp">
       <Filter>10. GameSystem</Filter>
     </ClCompile>
+    <ClCompile Include="GameFramework\UI\UISlider.cpp">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor\ABlackHole.cpp">
+      <Filter>20. Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Widget\Widget_Main.cpp">
+      <Filter>21. Widget</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework\UI\UIHeadingIndicator.cpp">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\DataManager.h">
@@ -420,6 +432,18 @@
     </ClInclude>
     <ClInclude Include="GameSystem\SpaceLightingSystem.h">
       <Filter>10. GameSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\UI\UISlider.h">
+      <Filter>02. GameFramework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor\ABlackHole.h">
+      <Filter>20. Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Widget\Widget_Main.h">
+      <Filter>21. Widget</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework\UI\UIHeadingIndicator.h">
+      <Filter>02. GameFramework\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -37,3 +37,13 @@ void Widget::Render(HDC hdc)
     for (auto* child : _children)
         child->Render(hdc);
 }
+
+bool Widget::IsMouseOverUI(Vector2 mousePos) const
+{
+    for (UIBase* child : _children)
+    {
+        if (child->IsHoverInUI(mousePos))
+            return true;
+    }
+    return false;
+}

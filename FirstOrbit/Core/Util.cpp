@@ -32,6 +32,47 @@ float LerpAngle(float from, float to, float t)
 	return from + delta * t;
 }
 
+float Normalize(float value, float min, float max)
+{
+	if (abs(max - min) < 1e-6f) return 0.f;
+
+	float normalized = (value - min) / (max - min);
+
+	return clamp(normalized, 0.0f, 1.0f);
+}
+
+COLORREF LerpColor(const COLORREF& colorA, const COLORREF& colorB, float t)
+{
+
+	BYTE rA = GetRValue(colorA);
+	BYTE gA = GetGValue(colorA);
+	BYTE bA = GetBValue(colorA);
+
+	BYTE rB = GetRValue(colorB);
+	BYTE gB = GetGValue(colorB);
+	BYTE bB = GetBValue(colorB);
+
+	BYTE r = static_cast<BYTE>(rA + (rB - rA) * t + 0.5f);
+	BYTE g = static_cast<BYTE>(gA + (gB - gA) * t + 0.5f);
+	BYTE b = static_cast<BYTE>(bA + (bB - bA) * t + 0.5f);
+
+	return RGB(r, g, b);
+}
+
+float SolveKeplerEquation(float meanAnomaly, float eccentricity)
+{
+	// 뉴턴법 : E = M + e*sin(E)를 반복 수렴
+	// 이심률(최대 수성 0.206)범위에서는 6회면 충분히 수렴 가능
+	float E = meanAnomaly;
+	for (int i = 0; i < 6; i++)
+	{
+		float dE = (E - eccentricity * sinf(E) - meanAnomaly) / (1.f - eccentricity * cosf(E));
+		E -= dE;
+	}
+
+	return E;
+}
+
 std::wstring CharToWStringStandard(const char* str)
 {
 	// C locale 설정 (한글 처리를 위해 필수)

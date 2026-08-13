@@ -31,8 +31,11 @@ bool SpaceLightingSystem::Initialize(HDC hdc, int width, int height)
 	_engineGlow->Create(128, RGB(80, 180, 255));
 
 	_accretionGlow = new Glow();
-	_accretionGlow->Create(256, RGB(255, 120, 30));
+	//_accretionGlow->Create(256, RGB(255, 120, 30));
+	_accretionGlow->Create(256, RGB(255, 255, 255));
 
+	_blackholeGlow = new Glow();
+	_blackholeGlow->Create(256, RGB(255, 255, 255));
 
 	return true;
 }
@@ -69,6 +72,12 @@ void SpaceLightingSystem::GenerateStarfield(int starCount, float range)
 
 void SpaceLightingSystem::BeginRender(Camera& cam)
 {
+	//// 블랙홀 화면 크기를 여기서 한 번만 계산(클램프 포함)하고, 코어/별 둘 다 이 비율을 같이 쓴다
+	//float trueBhScreenRadius = cam.WorldToScreenScale(_blackHoleEventRadius);
+	//_bhScreenRadius = clamp(trueBhScreenRadius, 15.f, 80.f);
+	//float bhScale = (_blackHoleEventRadius > 0.001f) ? (_bhScreenRadius / _blackHoleEventRadius) : 1.f;
+	//Vector2 bhScreenCenter = cam.WorldToScreen(_blackHoleCenter);
+
 	memset(_pBgPixels, 0,  _width * _height * 4);
 
 	// StarField와 동일한 AABB 컷 
@@ -96,6 +105,31 @@ void SpaceLightingSystem::BeginRender(Camera& cam)
 		_pBgPixels[idx] = _pBgPixels[idx + 1] = _pBgPixels[idx + 2] = 180;
 	}
 
+	//for (const FallingStar& fs : _fallingStars)
+	//{
+	//	Vector2 pos = _blackHoleCenter + Vector2(cosf(fs.angle), sinf(fs.angle)) * fs.radius;
+	//	if (pos.x < minX || pos.x > maxX || pos.y < minY || pos.y > maxY) continue;
+	//
+	//	Vector2 s = cam.WorldToScreen(pos);
+	//	int32 x = (int32)s.x, y = (int32)s.y;
+	//	if (x < 0 || x >= _width || y < 0 || y >= _height) continue;
+	//
+	//	int idx = (y * _width + x) * 4;
+	//	_pBgPixels[idx] = _pBgPixels[idx + 1] = _pBgPixels[idx + 2] = 180;
+	//}
+	// 블랙홀 근처 별들 — 카메라 줌이 아니라 bhScale로 위치 계산 (코어랑 같이 커지고 작아짐)
+	//for (const FallingStar& fs : _fallingStars)
+	//{
+	//	Vector2 offset = Vector2(cosf(fs.angle), sinf(fs.angle)) * fs.radius;
+	//	Vector2 s = bhScreenCenter + offset * bhScale;
+	//
+	//	int32 x = (int32)s.x, y = (int32)s.y;
+	//	if (x < 0 || x >= _width || y < 0 || y >= _height) continue;
+	//
+	//	int idx = (y * _width + x) * 4;
+	//	_pBgPixels[idx] = _pBgPixels[idx + 1] = _pBgPixels[idx + 2] = 180;
+	//}
+
 	memcpy(_pPixels, _pBgPixels, _width * _height * 4);
 }
 
@@ -104,9 +138,48 @@ void SpaceLightingSystem::EndRender(HDC hdcTarget)
 	BitBlt(hdcTarget, 0, 0, _width, _height, _hDIBDC, 0, 0, SRCCOPY);
 }
 
+void SpaceLightingSystem::UpdateStars(float deltaTime)
+{
+	// 별 전체 (태양 중신으로 아주 느리게 다같이 공전
+	constexpr float kMaxRotSpeed = 0.01f;
+	constexpr float kOrbitFalloffDist = 50000.f;
+
+	for (Vector2& star : _starsWorld)
+	{
+		float dist = star.Length();
+		float angularSpeed = kMaxRotSpeed * expf(-dist / kOrbitFalloffDist);
+		float delta = angularSpeed * deltaTime;
+
+		float c = cosf(delta);
+		float s = sinf(delta);
+		float x = star.x * c - star.y * s;
+		float y = star.x * s + star.y * c;
+
+		star.x = x; star.y = y;
+	}
+
+	// 블랙홀 근처 별 (안쪽으로 빨려들며 회전(강착원반처럼), 흡수되면 다시 바깥에서 재생성)
+	constexpr float kFallSpeed = 800.f;
+	constexpr float kBaseSwirlSpeed = 1.5f;
+	for (FallingStar& fs : _fallingStars)
+	{
+		float swirlSpeed = kBaseSwirlSpeed * (_blackHoleClusterRadius / fs.radius);
+		fs.angle += swirlSpeed * deltaTime;
+		fs.radius -= kFallSpeed * deltaTime;
+
+		if (fs.radius < _blackHoleEventRadius)
+			fs.radius = _blackHoleClusterRadius;
+	}
+}
+
 void SpaceLightingSystem::RenderSunGlow(const Vector2& pos, float radius, BYTE intensity)
 {
 	_sunGlow->Render(_hDIBDC, pos, radius, intensity);
+}
+
+void SpaceLightingSystem::RenderBlackHoleGlow(const Vector2& pos, float radius, BYTE intensity)
+{
+	_blackholeGlow->Render(_hDIBDC, pos, radius, intensity);
 }
 
 void SpaceLightingSystem::SpawnEngineParticle(const Vector2& pos, const Vector2& dir)
@@ -192,9 +265,9 @@ void SpaceLightingSystem::ApplyPlanetShadow(const Vector2& sunPos, const Vector2
 void SpaceLightingSystem::ApplyBlackHoleLensing(const Vector2& bhPos, float bhRadius, float distortionStr)
 {
 	float effectRadius = bhRadius * 3.5f;
+	//_debugLastGlowOk = _accretionGlow->Render(_hDIBDC, bhPos, effectRadius * 0.8f, 220);
 
-	// 강착원반(Accretion Disk) 글로우 우선 출력
-	_accretionGlow->Render(_hDIBDC, bhPos, effectRadius * 0.8f, 220);
+	
 
 	int minX = (int)max(0.f, bhPos.x - effectRadius);
 	int minY = (int)max(0.f, bhPos.y - effectRadius);
@@ -202,7 +275,7 @@ void SpaceLightingSystem::ApplyBlackHoleLensing(const Vector2& bhPos, float bhRa
 	int maxX = (int)min((float)_width, bhPos.x + effectRadius);
 	int maxY = (int)min((float)_height, bhPos.y + effectRadius);
 
-
+	// 1. 배경(별) 왜곡 — 이벤트 호라이즌 바깥 ~ effectRadius
 	for (int y = minY; y < maxY; ++y)
 	{
 		for (int x = minX; x < maxX; ++x)
@@ -211,27 +284,144 @@ void SpaceLightingSystem::ApplyBlackHoleLensing(const Vector2& bhPos, float bhRa
 			Vector2 diff = currentPos - bhPos;
 			float dist = diff.Length();
 
+			if (dist < bhRadius || dist >= effectRadius) continue;
+
 			int targetIdx = (y * _width + x) * 4;
+			float factor = pow(bhRadius / dist, 1.5f) * distortionStr;
 
-			if (dist < bhRadius)
-			{
-				_pPixels[targetIdx]		= 0;
-				_pPixels[targetIdx + 1] = 0;
-				_pPixels[targetIdx + 2] = 0;
-			}
-			else if (dist < effectRadius)
-			{
-				float factor = pow(bhRadius / dist, 1.5f) * distortionStr;
-				Vector2 srcPos = currentPos + (diff * (factor / dist));
+			// effectRadius 근처(바깥쪽 30% 구간)에서 부드럽게 0으로 수렴시켜 경계선을 없앤다
+			float edgeFade = 1.f - clamp((dist - effectRadius * 0.7f) / (effectRadius * 0.3f), 0.f, 1.f);
+			factor *= edgeFade;
 
-				int srcX = (int)clamp(srcPos.x, 0.f, (float)_width - 1.f);
-				int srcY = (int)clamp(srcPos.y, 0.f, (float)_height - 1.f);
+			Vector2 srcPos = currentPos + (diff * (factor / dist));
 
-				int srcIdx = (srcY * _width + srcX) * 4;
-				_pPixels[targetIdx] = _pBgPixels[srcIdx];
-				_pPixels[targetIdx + 1] = _pBgPixels[srcIdx + 1];
-				_pPixels[targetIdx + 2] = _pBgPixels[srcIdx + 2];
-			}
+			int srcX = (int)clamp(srcPos.x, 0.f, (float)_width - 1.f);
+			int srcY = (int)clamp(srcPos.y, 0.f, (float)_height - 1.f);
+			int srcIdx = (srcY * _width + srcX) * 4;
+
+			_pPixels[targetIdx] = _pBgPixels[srcIdx];
+			_pPixels[targetIdx + 1] = _pBgPixels[srcIdx + 1];
+			_pPixels[targetIdx + 2] = _pBgPixels[srcIdx + 2];
 		}
+	}
+
+
+	//for (int y = minY; y < maxY; ++y)
+	//{
+	//	for (int x = minX; x < maxX; ++x)
+	//	{
+	//		Vector2 currentPos((float)x, (float)y);
+	//		Vector2 diff = currentPos - bhPos;
+	//		float dist = diff.Length();
+	//
+	//		int targetIdx = (y * _width + x) * 4;
+	//
+	//		if (dist < bhRadius)
+	//		{
+	//			_pPixels[targetIdx]		= 0;
+	//			_pPixels[targetIdx + 1] = 0;
+	//			_pPixels[targetIdx + 2] = 0;
+	//		}
+	//		else if (dist < effectRadius)
+	//		{
+	//			float factor = pow(bhRadius / dist, 1.5f) * distortionStr;
+	//			Vector2 srcPos = currentPos + (diff * (factor / dist));
+	//
+	//			int srcX = (int)clamp(srcPos.x, 0.f, (float)_width - 1.f);
+	//			int srcY = (int)clamp(srcPos.y, 0.f, (float)_height - 1.f);
+	//
+	//			int srcIdx = (srcY * _width + srcX) * 4;
+	//			_pPixels[targetIdx] = _pBgPixels[srcIdx];
+	//			_pPixels[targetIdx + 1] = _pBgPixels[srcIdx + 1];
+	//			_pPixels[targetIdx + 2] = _pBgPixels[srcIdx + 2];
+	//		}
+	//	}
+	//}
+
+	// 강착원반(Accretion Disk) 글로우 우선 출력
+	_accretionGlow->Render(_hDIBDC, bhPos, effectRadius * 0.8f, 220);
+
+	// 3. 블랙홀 주위를 도는 별들 — 왜곡 루프 뒤에 그려서 안 지워지게 한다
+	float bhScale = (_blackHoleEventRadius > 0.001f) ? (bhRadius / _blackHoleEventRadius) : 1.f;
+	for (const FallingStar& fs : _fallingStars)
+	{
+		Vector2 offset = Vector2(cosf(fs.angle), sinf(fs.angle)) * fs.radius;
+		Vector2 s = bhPos + offset * bhScale;
+
+		int32 x = (int32)s.x, y = (int32)s.y;
+		if (x < 0 || x >= _width || y < 0 || y >= _height) continue;
+
+		int idx = (y * _width + x) * 4;
+		_pPixels[idx] = _pPixels[idx + 1] = _pPixels[idx + 2] = 255;
+	}
+
+
+	// 3. 이벤트 호라이즌 — 글로우 위에 검은 코어를 마지막으로 다시 뚫는다
+	for (int y = minY; y < maxY; ++y)
+	{
+		for (int x = minX; x < maxX; ++x)
+		{
+			if ((Vector2((float)x, (float)y) - bhPos).Length() >= bhRadius) continue;
+
+			int targetIdx = (y * _width + x) * 4;
+			_pPixels[targetIdx] = 0;
+			_pPixels[targetIdx + 1] = 0;
+			_pPixels[targetIdx + 2] = 0;
+		}
+	}
+}
+
+void SpaceLightingSystem::AddStartCluster(Vector2 center, int count, float radius)
+{
+	_starsWorld.reserve(_starsWorld.size() + count);
+
+	for (int i = 0; i < count; ++i)
+	{
+		float x = ((float)rand() / RAND_MAX * 2.f - 1.f) * radius;
+		float y = ((float)rand() / RAND_MAX * 2.f - 1.f) * radius;
+
+		_starsWorld.push_back(center + Vector2(x, y));
+	}
+}
+
+void SpaceLightingSystem::AddBlackHoleFallingStars(Vector2 center, int count, float maxRadius, float eventRadius)
+{
+
+	_blackHoleCenter = center;
+	_blackHoleClusterRadius = maxRadius;
+	_blackHoleEventRadius = eventRadius;
+
+	// 일반 별들 (_starsWorld) 중 블랙홀 근처에 있는 애들을 찾아서 옮긴다
+	for (auto it = _starsWorld.begin(); it != _starsWorld.end();)
+	{
+		Vector2 offset = *it - center;
+		float dist = offset.Length();
+
+		if (dist < maxRadius)
+		{
+			FallingStar s;
+			s.angle = atan2f(offset.y, offset.x);
+			s.radius = max(dist, eventRadius);
+			_fallingStars.push_back(s);
+
+			it = _starsWorld.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+
+	// 2) 목표 개수(count)에서 이미 옮겨온 만큼 뺀 나머지를 새로 채운다
+	int remaining = count - (int)_fallingStars.size();
+	for (int i = 0; i < remaining; ++i)
+	{
+		FallingStar s;
+		s.angle = ((float)rand() / RAND_MAX) * 6.283185f;
+		float t = (float)rand() / RAND_MAX;
+		//s.radius = eventRadius + ((float)rand() / RAND_MAX) * (maxRadius - eventRadius);
+		s.radius = eventRadius + powf(t, 4.f) * (maxRadius - eventRadius);
+		_fallingStars.push_back(s);
 	}
 }

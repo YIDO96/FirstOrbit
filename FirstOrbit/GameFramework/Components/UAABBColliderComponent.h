@@ -10,6 +10,8 @@ public:
 
 	virtual void Update() override;
 
+	void SetSide(Vector2 size) { _size = size; }
+
 private:
 	AABB UpdateAABB2D_Standard();
 	AABB UpdateAABB_WithRotation();

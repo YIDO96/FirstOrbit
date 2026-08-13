@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "UIBase.h"
 
+#include "Core/GameInstance.h"
 #include "GameFramework/Texture.h"
 
 void UIBase::RecalculateFinalPos()
@@ -16,9 +17,12 @@ bool UIBase::IsHoverInUI(Vector2 mousePos)
 	Vector2 pos = GetPos();   // 또는 texture->GetFinalPos()
 	Vector2 size = GetSize();
 
+	// mousePos는 윈도우 픽셀 좌표, UI는 논리 해상도(GWinSizeX x GWinSizeY) 기준이라 비율 보정 필요
+	Vector2 scaledMouse = mousePos / GAME.GetRectRatio();
+
 	// Rect 범위 안에 마우스 좌표가 들어왔는지 검사
-	bool isInsideX = (mousePos.x >= pos.x && mousePos.x <= pos.x + size.x);
-	bool isInsideY = (mousePos.y >= pos.y && mousePos.y <= pos.y + size.y);
+	bool isInsideX = (scaledMouse.x >= pos.x && scaledMouse.x <= pos.x + size.x);
+	bool isInsideY = (scaledMouse.y >= pos.y && scaledMouse.y <= pos.y + size.y);
 
 	return isInsideX && isInsideY;
 }

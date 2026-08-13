@@ -15,8 +15,8 @@ void Widget_Title::Init()
 	Super::Init();
 
 	_titleName = AddChild<UIText>();
-	_titleName->SetText(L"FirstOrbit");
-	_titleName->Init(EAnchor::Top, EPivot::Center, Vector2(0, 100), Vector2(100, 30));
+	//_titleName->SetText(L"FirstOrbit");
+	_titleName->Init(EAnchor::Top, EPivot::Center, Vector2(0, 100), Vector2(100, 30), L"FirstOrbit");
 	_titleName->SetFontSize(60.f);
 
 	Texture* buttonTex = RESOURCE.GetTexture(L"ButtonBG");

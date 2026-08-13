@@ -8,7 +8,7 @@ public:
 	~Glow();
 
 	bool Create(int size, COLORREF color);
-	void Render(HDC hdcDest, const Vector2& centerPos, float radius, BYTE intensity = 255);
+	bool Render(HDC hdcDest, const Vector2& centerPos, float radius, BYTE intensity = 255);
 	void Destroy();
 
 private:

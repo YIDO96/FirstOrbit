@@ -19,14 +19,15 @@ void APlanet::Init()
 }
 void APlanet::Update(float deltaTime)
 {
-	_angle += _orbitSpeed * deltaTime;
-	Vector2 p = _orbitCenter + Vector2(cosf(_angle), sinf(_angle)) * _orbitRadius;
-	SetCenterPos(p);
+	_meanAnomaly += _orbitSpeed * deltaTime;
+	SetCenterPos(ComputePositionAtMeanAnomaly(_meanAnomaly));
 
 	Super::Update(deltaTime);
 }
 void APlanet::Render(HDC hdc)
 {
+
+
 	Camera& cam = _ownerWorld->GetCamera();
 	Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
 	float r = cam.WorldToScreenScale(_bodyRadius);
@@ -36,75 +37,39 @@ void APlanet::Render(HDC hdc)
 	if (_texture)
 	{
 		Vector2 destSize(max(r * 2.f, 1.f), max(r * 2.f, 1.f)); // 0px 방지
+
+
 		Vector2 renderPos = screenPos - destSize / 2.f;
-
+		//_texture->RenderRotated(hdc, screenPos, angle, destSize);
 		_texture->Render(hdc, renderPos, Vector2(), Vector2(), destSize);
-
 	}
-
-
-	//if (r >= 30.f)
-	//{
-	//	// 원 + 표면 디테일 (일단은 테두리만)
-	//	HBRUSH brush = ::CreateSolidBrush(RGB(100, 150, 255));
-	//	HBRUSH oldBrush = (HBRUSH)::SelectObject(hdc, brush);
-	//	HPEN pen = ::CreatePen(PS_SOLID, 2, RGB(255, 255, 255));
-	//	HPEN oldPen = (HPEN)::SelectObject(hdc, pen);
-	//
-	//	::Ellipse(hdc,
-	//		(int)(screenPos.x - r), (int)(screenPos.y - r),
-	//		(int)(screenPos.x + r), (int)(screenPos.y + r));
-	//
-	//	::SelectObject(hdc, oldBrush);
-	//	::SelectObject(hdc, oldPen);
-	//	::DeleteObject(brush);
-	//	::DeleteObject(pen);
-	//}
-	//else if (r >= 3.f)
-	//{
-	//	// 단색 원
-	//	HBRUSH brush = ::CreateSolidBrush(RGB(100, 150, 255));
-	//	HBRUSH oldBrush = (HBRUSH)::SelectObject(hdc, brush);
-	//
-	//	::Ellipse(hdc,
-	//		(int)(screenPos.x - r), (int)(screenPos.y - r),
-	//		(int)(screenPos.x + r), (int)(screenPos.y + r));
-	//
-	//	::SelectObject(hdc, oldBrush);
-	//	::DeleteObject(brush);
-	//}
-	//else
-	//{
-	//	// SetPixel
-	//	::SetPixel(hdc, (int)screenPos.x, (int)screenPos.y, RGB(255, 255, 255));
-	//}
 }
 void APlanet::OnGUI()
 {
-	const char* name = _name.c_str();
+	Super::OnGUI();
 
-	if (ImGui::TreeNode(name))
+	if (_isOpenGUI)
 	{
-
 		ImGui::TreePop();
 	}
 }
 
-void APlanet::Setup(string name, Vector2 orbitCenter, float orbitRadius, float orbitSpeed, float mu, float bodyRadius, float initialAngle)
+void APlanet::Setup(string name, Vector2 orbitCenter, float semiMajorAxis, float orbitSpeed, float mu, float bodyRadius,
+	float initialAngle, float eccentricity, float argPeriapsis)
 {
 	_name = name;
 	_orbitCenter = orbitCenter;
-	_orbitRadius = orbitRadius;
+	_semiMajorAxis = semiMajorAxis;
 	_orbitSpeed = orbitSpeed;
 	_mu = mu;
 	_bodyRadius = bodyRadius;
-	_angle = initialAngle;
+	_meanAnomaly = initialAngle;
+	_eccentricity = eccentricity;
+	_argPeriapsis = argPeriapsis;
 
 	_size = Vector2(_bodyRadius * 2, _bodyRadius * 2);
 
-	// 
-	Vector2 center = _orbitCenter + Vector2(cosf(_angle), sinf(_angle)) * orbitRadius;
-	SetCenterPos(center);
+	SetCenterPos(ComputePositionAtMeanAnomaly(_meanAnomaly));
 
 
 	_circleCollider->SetRadius(_bodyRadius);
@@ -112,16 +77,51 @@ void APlanet::Setup(string name, Vector2 orbitCenter, float orbitRadius, float o
 
 Vector2 APlanet::GetVelocity() const
 {
-	return Vector2(-sinf(_angle), cosf(_angle)) * (_orbitRadius * _orbitSpeed);
+	float E = SolveKeplerEquation(_meanAnomaly, _eccentricity);
+	float r = _semiMajorAxis * (1.f - _eccentricity * cosf(E));
+
+
+	float factor = (_orbitSpeed * _semiMajorAxis * _semiMajorAxis) / r;
+	float vx_pf = -factor * sinf(E);
+	float vy_pf = factor * sqrtf(1.f - _eccentricity * _eccentricity) * cosf(E);
+
+	float c = cosf(_argPeriapsis), s = sinf(_argPeriapsis);
+
+	return Vector2(vx_pf * c - vy_pf * s, vx_pf * s + vy_pf * c);
 }
 
 Vector2 APlanet::GetAcceleration() const
 {
-	return (_orbitCenter - GetCenterPos()) * (_orbitSpeed * _orbitSpeed);
+	Vector2 toCenter = _orbitCenter - GetCenterPos();
+	float r2 = toCenter.LengthSquared();
+	float r = sqrtf(r2);
+	if (r < 0.001f) return Vector2();
+
+	// μ_effective = n²·a³ (역시 μ_sun 없이 n, a로부터 유도) — 진짜 뉴턴 중력이라
+	// 기존 원운동 근사(ω²·(center-pos))보다 오히려 더 정확해짐
+
+	float muEff = _orbitSpeed * _orbitSpeed * _semiMajorAxis * _semiMajorAxis * _semiMajorAxis;
+	return toCenter * (muEff / (r2 * r));
 }
 
 Vector2 APlanet::GetFuturePos(float t) const
 {
-	float futureAngle = _angle + _orbitSpeed * t;
-	return _orbitCenter + Vector2(cosf(futureAngle), sinf(futureAngle)) * _orbitRadius;
+	return ComputePositionAtMeanAnomaly(_meanAnomaly + _orbitSpeed * t);
+}
+
+float APlanet::GetSOIRadius(float parentMu) const
+{
+	if (parentMu <= 0.f or _mu >= parentMu) return 0.f;
+
+	return _semiMajorAxis * powf(_mu / parentMu, 0.4f);
+}
+
+Vector2 APlanet::ComputePositionAtMeanAnomaly(float meanAnomaly) const
+{
+	float E = SolveKeplerEquation(meanAnomaly, _eccentricity);
+	float nu = 2.f * atan2f(sqrtf(1.f + _eccentricity) * sinf(E * 0.5f),
+		sqrtf(1.f - _eccentricity) * cosf(E * .5f));
+	float r = _semiMajorAxis * (1.f - _eccentricity * cosf(E));
+
+	return _orbitCenter + Vector2(cosf(nu + _argPeriapsis), sinf(nu + _argPeriapsis)) * r;
 }

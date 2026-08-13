@@ -27,10 +27,19 @@ public:
 	virtual void OnGUI() override;
 
 	void SetShip(ASpaceship* ship) { _ship = ship; }
+	void SetHomePlanet(APlanet* planet) { _home = planet; }
 
 	void ResetJudgment() { _orbitState = EOrbitState::Flying; _graceTimer = 0.f; _isWarning = false; }
 
 	vector<Vector2> PredictPath(int steps, float dt) const;
+
+
+public:
+	float GetPerigee()  const { return _perigee; }
+	float GetApogee() const { return _apogee; }
+	float GetEccentricity() const { return _eccentricity; }
+	EOrbitState GetOrbitState() const { return _orbitState; }
+	class APlanet* GetHomePlanet() const { return _home; }
 
 private:
 	ASpaceship* _ship = nullptr;

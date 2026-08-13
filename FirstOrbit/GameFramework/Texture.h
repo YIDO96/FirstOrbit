@@ -21,6 +21,10 @@ private:
 	// 투명 마스크 처리를 위한 마스크 비트맵 정보
 	HBITMAP     _maskBitmap = 0;
 
+	HDC			_tempDC = nullptr;
+	HBITMAP		_tempBitmap = nullptr;
+	int32		_tempDim = 0;
+
 	int32		_transparent = -1;
 	uint32		_bitmapSizeX = 0;
 	uint32		_bitmapSizeY = 0;

@@ -5,7 +5,7 @@
 #include "GameFramework/Texture.h"
 #include "GameFramework/UI/UIText.h"
 
-void UIButton::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
+void UIButton::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text)
 {
 
 
@@ -20,13 +20,21 @@ void UIButton::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
     _originFontSize = 40.f;
 }
 
-void UIButton::SetText(EParentAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text)
+void UIButton::SetText(EParentAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text, float fontSize)
 {
+    _textAnchor = anchor;
+    _textPivot = pivot;
+    _textPos = pos;
+    _textSize = size;
+
     _text = new UIText();
     _text->SetParentUI(this);
     _text->SetText(text);
     _text->InitButton(anchor, pivot, Vector2(pos.x, pos.y - 5), size);
+
+    if (fontSize > 0.01f) _originFontSize = fontSize;
     _text->SetFontSize(_originFontSize);
+
     COLORREF color = RGB(42, 176, 183);
     _text->SetTextColor(color);
 }
@@ -51,6 +59,7 @@ void UIButton::Update(float deltaTime)
         if (_text)
         {
             _text->SetFontSize(_originFontSize * _hoverRate);
+            _text->InitButton(_textAnchor, _textPivot, Vector2(_textPos.x, _textPos.y - 5), _textSize);   // 커진 버튼 기준으로 위치 재계산
         }
 
         if (_INPUT.GetButtonDown(KeyType::LeftMouse))
@@ -64,6 +73,7 @@ void UIButton::Update(float deltaTime)
         if (_text)
         {
             _text->SetFontSize(_originFontSize);
+            _text->InitButton(_textAnchor, _textPivot, Vector2(_textPos.x, _textPos.y - 5), _textSize);
         }
     }
 

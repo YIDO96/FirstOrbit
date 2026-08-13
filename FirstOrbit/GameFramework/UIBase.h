@@ -49,7 +49,7 @@ public:
 	UIBase() = default;
 	virtual ~UIBase() = default;
 
-	virtual void Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size) {}
+	virtual void Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text) {}
 	virtual void Update(float deltaTime) {}
 	virtual void Render(HDC hdc){}
 	virtual void OnGUI(){}

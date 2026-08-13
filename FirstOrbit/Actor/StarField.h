@@ -7,7 +7,7 @@ class StarField
 {
 public:
     void Init(int32 count, float range);   // ±range 정사각 영역에 균등 분포
-    void Render(HDC hdc, Camera& cam);
+    void Render(HDC hdc, Camera& cam, float brightness = 1.f);
 
 private:
     vector<Vector2> _stars;   // 월드 좌표

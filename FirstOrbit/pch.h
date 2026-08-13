@@ -79,5 +79,8 @@ constexpr int32 GWinSizeY = 800;
 // (프레임이 10fps 아래로 떨어지면 게임 시간을 느리게 흐르게 해 안정성을 지킨다)
 constexpr float GMaxDeltaTime = 1.0f / 10.0f;
 
+// 대기 밀도가 1/e로 줄어드는 고도 — 대기권 연출(하늘색·별)과 항력 계산이 공유하는 값
+constexpr float GAtmosphereScaleHeight = 2500.f;
+
 // 게임 화면 오른쪽에 고정으로 붙는 ImGui 패널의 너비
 constexpr int32 GImGuiPanelWidth = 300;

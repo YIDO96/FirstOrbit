@@ -7,7 +7,8 @@
 #include "GameFramework/Texture.h"
 #include "GameFramework/World.h"
 #include "GameFramework/Components/UPhysicsComponent.h"
-
+#include "GameFramework/Components/UAABBColliderComponent.h"
+#include "Actor/APlanet.h"
 
 void ASpaceship::Init()
 {
@@ -15,6 +16,9 @@ void ASpaceship::Init()
 	_type = EActorType::Ship;
 	_name = "SpaceShip";
 
+	//UAABBColliderComponent* collider = AddComponent<UAABBColliderComponent>();
+	//collider->SetSide(_size);
+	//_collider = collider;
 
 	_physicsComp = AddComponent<UPhysicsComponent>();
 	SetTexture(RESOURCE.GetTexture(L"Spaceship"));
@@ -24,7 +28,18 @@ void ASpaceship::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
 
+	UpdateTargetPlanet();
+
 	Input(deltaTime);
+
+	// 2) _isThrusting이 true인 프레임에만 deltaTime * _fuelConsumeRate만큼 _fuel을 깎을 것
+	if (_isThrusting)
+	{
+		_fuel -= _fuelConsumeRate * deltaTime;
+	}
+	// 3) _fuel이 0 밑으로 내려가지 않게 클램프할 것
+	_fuel = clamp(_fuel, 0.f, 100.f);
+
 
 	_trailSampleTimer += deltaTime;
 	if (_trailSampleTimer >= 0.05f)
@@ -34,42 +49,42 @@ void ASpaceship::Update(float deltaTime)
 		if (_trail.size() > maxTrail)
 			_trail.erase(_trail.begin());
 	}
+
+	if (abs((-GetCenterPos().y) - _lastSentAltitude) >= 0.05f)
+	{
+		_lastSentAltitude = (-GetCenterPos().y);
+
+		// 등록된 콜백이 있다면 호출 (이벤트 발송)
+		if (_onAltitudeChanged)
+		{
+			_onAltitudeChanged((-GetCenterPos().y));
+		}
+	}
+
+	if (abs(_physicsComp->GetVelocity().x - _lastHV) >= 0.05f)
+	{
+		_lastHV = _physicsComp->GetVelocity().x;
+
+		// 등록된 콜백이 있다면 호출 (이벤트 발송)
+		if (_onHVChanged)
+		{
+			_onHVChanged(_physicsComp->GetVelocity().x);
+		}
+	}
 }
 void ASpaceship::Render(HDC hdc)
 {
 	Super::Render(hdc);
 
 	Camera& cam = _ownerWorld->GetCamera();
-
+	Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
 	if (_texture)
 	{
-		Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
+		//Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
 		Vector2 destSize(cam.WorldToScreenScale(_size.x), cam.WorldToScreenScale(_size.y));
 		_texture->RenderRotated(hdc, screenPos, DegreeToRadian(GetDegree()), destSize);
 
 	}
-
-	// 기체를 자기 각도로 돌리고 → 월드 위치로 옮기고 → 뷰 변환
-	//Matrix3x3 M = cam.GetViewMatrix()
-	//	* Matrix3x3::Translate(GetCenterPos())
-	//	* Matrix3x3::Rotate(DegreeToRadian(GetDegree()));
-
-
-	//POINT pts[3];
-	//for (int i = 0; i < 3; ++i)
-	//{
-	//	Vector2 p = M.TransformPoint(_localPoints[i]);
-	//	pts[i].x = (long)p.x;
-	//	pts[i].y = (long)p.y;
-	//}
-	//
-	//HBRUSH brush = ::CreateSolidBrush(RGB(220, 220, 240));
-	//HBRUSH oldBrush = (HBRUSH)::SelectObject(hdc, brush);
-
-	//::Polygon(hdc, pts, 3);
-	//
-	//::SelectObject(hdc, oldBrush);
-	//::DeleteObject(brush);
 
 	COLORREF color = RGB(255, 255, 0);
 	if (_physicsComp)
@@ -89,18 +104,75 @@ void ASpaceship::Render(HDC hdc)
 }
 void ASpaceship::OnGUI()
 {
-	const char* name = _name.c_str();
+	Super::OnGUI();
 
-	if (ImGui::TreeNode(name))
+	if (_isOpenGUI)
 	{
-		Super::OnGUI();
-
 		ImGui::SliderFloat("Thrust", &_thrust, 10.f, 60.f);
 		ImGui::SliderFloat("RotSpeed", &_rotSpeed, 30.f, 180.f);
 
-
 		ImGui::TreePop();
 	}
+
+	//const char* name = _name.c_str();
+	//
+	//if (ImGui::TreeNode(name))
+	//{
+	//	Super::OnGUI();
+	//
+	//	ImGui::SliderFloat("Thrust", &_thrust, 10.f, 60.f);
+	//	ImGui::SliderFloat("RotSpeed", &_rotSpeed, 30.f, 180.f);
+	//
+	//
+	//	ImGui::TreePop();
+	//}
+}
+
+void ASpaceship::UpdateTargetPlanet()
+{
+	APlanet* dominant = nullptr;
+	for (int32 i = 0; i < _ownerWorld->GetActorCount(); ++i)
+	{
+		AActor* actor = _ownerWorld->GetActor(i);
+		if (actor->GetType() != EActorType::Planet) continue;
+
+		APlanet* planet = static_cast<APlanet*>(actor);
+		if (!dominant || planet->GetMu() > dominant->GetMu())
+			dominant = planet;
+	}
+
+	// 행성이 없는 월드(LaunchWorld)는 균일중력 그대로 유지
+	if (not dominant) return;
+
+	APlanet* current = GetTargetPlanet();
+
+	APlanet* best = nullptr;
+	float bestSOI = FLT_MAX;
+
+	for (int32 i = 0; i < _ownerWorld->GetActorCount(); ++i)
+	{
+		AActor* actor = _ownerWorld->GetActor(i);
+		if (actor->GetType() != EActorType::Planet) continue;
+
+		APlanet* planet = static_cast<APlanet*>(actor);
+		if (planet == dominant) continue;
+
+
+		float soi = planet->GetSOIRadius(dominant->GetMu());
+		if (soi <= 0.f) continue;
+
+		// 이미 이 행성이 타겟이면 탈줄 기준을 5% 더 넉넉하게 잡아서 경계 진동 방지
+		float effectiveSOI = (planet == current) ? soi * 1.05f : soi;
+
+		float distSq = (GetCenterPos() - planet->GetCenterPos()).LengthSquared();
+		if (distSq <= effectiveSOI * effectiveSOI and soi < bestSOI)
+		{
+			best = planet;
+			bestSOI = soi;
+		}
+	}
+
+	SetTargetPlanet(best ? best : dominant); // SOI 밖이면 태양으로 귀속
 }
 
 void ASpaceship::Input(float deltaTime)
@@ -111,8 +183,8 @@ void ASpaceship::Input(float deltaTime)
 	if (_INPUT.GetButtonPressed(KeyType::A) or _INPUT.GetButtonPressed(KeyType::Left)) AddRotation(-_rotSpeed * deltaTime);
 	if (_INPUT.GetButtonPressed(KeyType::D) or _INPUT.GetButtonPressed(KeyType::Right)) AddRotation(_rotSpeed * deltaTime);
 	
-	_isThrusting = _INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up);
-	
+
+	_isThrusting = (_INPUT.GetButtonPressed(KeyType::W) or _INPUT.GetButtonPressed(KeyType::Up)) and (_fuel > 0.f);
 }
 
 void ASpaceship::Reset()

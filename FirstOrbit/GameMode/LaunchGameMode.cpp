@@ -14,6 +14,11 @@ void LaunchGameMode::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
 
+	if (_ship)
+	{
+		_altitude = -_ship->GetCenterPos().y;
+	}
+
 	if (_launchState == ELaunchState::Ascent and _ship and _ship->GetCenterPos().y > 0.f)
 	{
 		ChangeLaunchState(ELaunchState::Failed);
@@ -90,4 +95,9 @@ void LaunchGameMode::Reset()
 		_ship->Reset();
 
 	ChangeLaunchState(ELaunchState::Idle);
+}
+
+Vector2 LaunchGameMode::GetHorizentalVelocity() const
+{
+	return _ship->GetComponent<UPhysicsComponent>()->GetVelocity();
 }

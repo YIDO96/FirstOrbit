@@ -151,6 +151,7 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Actor\ABlackHole.cpp" />
     <ClCompile Include="Actor\APlanet.cpp" />
     <ClCompile Include="Actor\ASpaceship.cpp" />
     <ClCompile Include="Actor\StarField.cpp" />
@@ -180,7 +181,9 @@
     <ClCompile Include="GameFramework\Texture.cpp" />
     <ClCompile Include="GameFramework\UIBase.cpp" />
     <ClCompile Include="GameFramework\UI\UIButton.cpp" />
+    <ClCompile Include="GameFramework\UI\UIHeadingIndicator.cpp" />
     <ClCompile Include="GameFramework\UI\UIImage.cpp" />
+    <ClCompile Include="GameFramework\UI\UISlider.cpp" />
     <ClCompile Include="GameFramework\UI\UIText.cpp" />
     <ClCompile Include="GameFramework\UI\Widget.cpp" />
     <ClCompile Include="GameFramework\World.cpp" />
@@ -238,6 +241,7 @@
     </ClCompile>
     <ClCompile Include="Structs.cpp" />
     <ClCompile Include="Widget\Widget_Launch.cpp" />
+    <ClCompile Include="Widget\Widget_Main.cpp" />
     <ClCompile Include="Widget\Widget_Title.cpp" />
     <ClCompile Include="Worlds\EditorWorld.cpp" />
     <ClCompile Include="Worlds\GameOverWorld.cpp" />
@@ -246,6 +250,7 @@
     <ClCompile Include="Worlds\TitleWorld.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor\ABlackHole.h" />
     <ClInclude Include="Actor\APlanet.h" />
     <ClInclude Include="Actor\ASpaceship.h" />
     <ClInclude Include="Actor\StarField.h" />
@@ -279,7 +284,9 @@
     <ClInclude Include="GameFramework\Texture.h" />
     <ClInclude Include="GameFramework\UIBase.h" />
     <ClInclude Include="GameFramework\UI\UIButton.h" />
+    <ClInclude Include="GameFramework\UI\UIHeadingIndicator.h" />
     <ClInclude Include="GameFramework\UI\UIImage.h" />
+    <ClInclude Include="GameFramework\UI\UISlider.h" />
     <ClInclude Include="GameFramework\UI\UIText.h" />
     <ClInclude Include="GameFramework\UI\Widget.h" />
     <ClInclude Include="GameFramework\World.h" />
@@ -303,6 +310,7 @@
     <ClInclude Include="Structs.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Widget\Widget_Launch.h" />
+    <ClInclude Include="Widget\Widget_Main.h" />
     <ClInclude Include="Widget\Widget_Title.h" />
     <ClInclude Include="Worlds\EditorWorld.h" />
     <ClInclude Include="Worlds\GameOverWorld.h" />

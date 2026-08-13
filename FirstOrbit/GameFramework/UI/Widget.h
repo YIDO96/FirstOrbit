@@ -28,6 +28,10 @@ public:
 
 	virtual void OnGUI() {}
 
+	// 자식 UI 요소(버튼 등) 중 하나라도 마우스가 위에 있으면 true.
+	// (Widget 자기 자신은 크기를 안 갖고 있어서 IsHoverInUI를 그대로 쓰면 항상 false가 나온다)
+	bool IsMouseOverUI(Vector2 mousePos) const;
+
 	void ActiveEditMode() { _isEditMode = true; }
 	void DeActiveEditMode() { _isEditMode = false; }
 

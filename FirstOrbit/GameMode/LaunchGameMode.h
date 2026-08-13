@@ -26,12 +26,16 @@ public :
 	void UpdateTextByState();
 	void Reset();
 
+
 	void SetShip(class ASpaceship* ship) { _ship = ship; }
 	ELaunchState GetLaunchState() const { return _launchState; }
+	float GetAltitude() const { return _altitude; }
+	Vector2 GetHorizentalVelocity() const;
 
 private:
 	class ASpaceship* _ship = nullptr;
 
+	float _altitude = 0.f;
 	int32 _countdownTimerId = -1;
 	float _countdownTimer = 3.f;
 	string str;

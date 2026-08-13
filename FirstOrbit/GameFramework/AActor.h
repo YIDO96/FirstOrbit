@@ -7,7 +7,8 @@ enum class EActorType
 	None,
 	Planet,
 	Ship,
-	Ground
+	Ground,
+	BlackHole,
 };
 
 class World;
@@ -26,6 +27,8 @@ public:
 	virtual void UpdateCollider(float deltaTime);
 	virtual void Render(HDC hdc);
 	virtual void OnGUI();
+
+	void OnImGuiDoubleClick();
 
 	// 컴포넌트 부착 (≈ 언리얼의 CreateDefaultSubobject/AddComponent).
 	// new T(this, args...) 로 생성해 리스트에 넣고 Init()까지 호출한 뒤 반환한다.
@@ -110,4 +113,5 @@ protected:
 	Vector2 _rightDir			= Vector2(1,  0);	// 오른쪽(0도 기준)
 
 	bool _isActive				= true;
+	bool _isOpenGUI				= false;
 };

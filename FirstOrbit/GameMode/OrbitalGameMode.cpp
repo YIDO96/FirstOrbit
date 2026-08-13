@@ -1,19 +1,43 @@
 #include "pch.h"
 #include "OrbitalGameMode.h"
 
+#include "GameFramework/World.h"
 #include "GameFramework/Components/UPhysicsComponent.h"
+
 
 #include "Actor/ASpaceship.h"
 #include "Actor/APlanet.h"
+#include "Actor/ABlackHole.h"
 
 void OrbitalGameMode::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
 
 	if (not _ship) return;
+
+	// 이벤트 호라이즌: 지금 중력원이 뭐든 상관없이 항상 체크
+	for (int32 i = 0; i < _world->GetActorCount(); ++i)
+	{
+		AActor* actor = _world->GetActor(i);
+		if (actor->GetType() != EActorType::BlackHole) continue;
+
+		ABlackHole* hole = static_cast<ABlackHole*>(actor);
+		if ((_ship->GetCenterPos() - hole->GetCenterPos()).Length() < hole->GetEventHorizonRadius())
+		{
+			_orbitState = EOrbitState::Failed;
+			return;
+		}
+	}
+
 	APlanet* home = _ship->GetTargetPlanet();
 
 	if (not home) return;
+
+	if (home != _home)
+	{
+		_graceTimer = 0.f;
+		return;
+	}
 
 	//if (_orbitState == EOrbitState::Failed) return;
 
@@ -67,11 +91,15 @@ void OrbitalGameMode::Update(float deltaTime)
 void OrbitalGameMode::OnGUI()
 {
 	Vector2 v = _ship->GetComponent<UPhysicsComponent>()->GetVelocity();
+	APlanet* home = _ship->GetTargetPlanet();
 
 	if (ImGui::TreeNode("GameMode"))
 	{
 		ImGui::Text("GameMode : OrbitalGameMode");
 		Super::OnGUI();
+
+		if (home)
+			ImGui::Text(home == _home ? "귀속: %s" : "순항 중 (중력원: %s)", home->GetName().c_str());
 
 		if (_isWarning)
 			ImGui::Text("경고! 경고!");

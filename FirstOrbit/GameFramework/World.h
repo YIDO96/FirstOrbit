@@ -22,6 +22,8 @@ public:
     virtual void LoadTexture();
     virtual void OnGUI();
 
+    class APlanet* FindDominantPalnet() const;  // mu가 제일 큰 행성 (태양) 반환
+
     void SetWorldName(string name) { _worldName = name; }
     string GetWorldName() const { return _worldName; }
 
@@ -57,6 +59,7 @@ public:
     virtual void ResetCamera(Vector2 pos) {}
 
     void SetCameraPos(Vector2 pos) { _camera.SetPosition(pos); }
+    void SetCameraOnGUIDoubleClickedEvent(AActor* target);
 
     AActor* GetActor(int idx) const { return _actors[idx]; }
     int32 GetActorCount() const { return _actors.size(); }

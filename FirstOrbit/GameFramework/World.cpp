@@ -14,6 +14,8 @@
 #include "GameFramework/Components/UColliderComponent.h"
 #include "GameFramework/GameMode.h"
 
+#include "Actor/APlanet.h"
+
 World::~World()
 {
     delete _gameMode;
@@ -315,18 +317,37 @@ void World::OnGUI()
 
     if (_actors.size() >= 1)
     {
-        if (ImGui::TreeNode("Actor"))
-        {
-            for (AActor* actor : _actors)
-                if (actor->GetIsActive()) actor->OnGUI();
+        //if (ImGui::TreeNode("Actor"))
+        //{
+        //    for (AActor* actor : _actors)
+        //        if (actor->GetIsActive()) actor->OnGUI();
+        //
+        //    ImGui::TreePop();
+        //}
 
-            ImGui::TreePop();
-        }
+        for (AActor* actor : _actors)
+            if (actor->GetIsActive()) actor->OnGUI();
     }
    
     ImGui::End();
 
     
+}
+
+APlanet* World::FindDominantPalnet() const
+{
+    APlanet* dominant = nullptr;
+
+    for (AActor* actor : _actors)
+    {
+        if (actor->GetType() != EActorType::Planet) continue;
+
+        APlanet* planet = static_cast<APlanet*>(actor);
+        if (!dominant || planet->GetMu() > dominant->GetMu())
+            dominant = planet;
+    }
+
+    return dominant;
 }
 
 
@@ -338,4 +359,11 @@ void World::DestroyActor(AActor* actor)
         return; // 이미 삭제 대기 중
 
     _pendingDestroy.push_back(actor);
+}
+
+void World::SetCameraOnGUIDoubleClickedEvent(AActor* target)
+{
+    _camera.SetPosition(target->GetCenterPos());
+    _camera.SetFollowTarget(target);
+    _camera.SetZoomImmediate(0.05f);
 }

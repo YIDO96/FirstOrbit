@@ -15,8 +15,10 @@ void StarField::Init(int32 count, float range)
     }
 }
 
-void StarField::Render(HDC hdc, Camera& cam)
+void StarField::Render(HDC hdc, Camera& cam, float brightness)
 {
+    if (brightness <= 0.01f) return;
+
     // 화면 네 모서리를 월드로 역변환 → 보일 수 있는 월드 영역(AABB)을 한 번만 구한다
     Vector2 c0 = cam.ScreenToWorld(Vector2(0.f, 0.f));
     Vector2 c1 = cam.ScreenToWorld(Vector2((float)GWinSizeX, 0.f));

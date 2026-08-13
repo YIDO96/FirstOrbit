@@ -5,6 +5,7 @@
 #include "Core/WorldManager.h"
 #include "Core/ResourceManager.h"
 #include "Core/GameInstance.h"
+#include "Core/UIManager.h"
 
 #include "GameFramework/Texture.h"
 #include "GameFramework/Components/UPhysicsComponent.h"
@@ -15,6 +16,9 @@
 #include "GameMode/OrbitalGameMode.h"
 
 #include "Actor/StarField.h"
+#include "Actor/ABlackHole.h"
+
+#include "Widget/Widget_Main.h"
 
 MainWorld::~MainWorld()
 {
@@ -64,8 +68,13 @@ void MainWorld::Enter()
 	HDC hdc = ::GetDC(GAME.GetHwnd());
 	_lightingSystem->Initialize(hdc, GWinSizeX, GWinSizeY);
 	::ReleaseDC(GAME.GetHwnd(), hdc);
-	_lightingSystem->GenerateStarfield(20000, 500000.f);
+	_lightingSystem->GenerateStarfield(600000, 5000000.f);
+	_lightingSystem->AddBlackHoleFallingStars(_blackHole->GetCenterPos(), 20000, 5500.f, _blackHole->GetEventHorizonRadius());
 
+
+	_widget = UI.CreateWidget<Widget_Main>();
+	_widget->SetOwnerWorld(this);
+	_widget->BindShip(_ship);
 }
 
 void MainWorld::Update(float deltaTime)
@@ -80,9 +89,15 @@ void MainWorld::Update(float deltaTime)
 
 	if (_INPUT.GetButtonDown(KeyType::LeftMouse))
 	{
-		Vector2 worldPos = _camera.WorldToMousePos(_INPUT.GetMousePos());
-		_selected = PickActor(worldPos);
-		_camera.SetFollowTarget(_selected);
+		ImGuiIO& io = ImGui::GetIO();
+		Vector2 mousePos = _INPUT.GetMousePos();
+		bool overOwnUI = _widget and _widget->IsMouseOverUI(mousePos);
+		if (_INPUT.IsMouseInsideWindow(GAME.GetGameViewportRect()) and not io.WantCaptureMouse and not overOwnUI)
+		{
+			Vector2 worldPos = _camera.WorldToMousePos(mousePos);
+			_selected = PickActor(worldPos);
+			_camera.SetFollowTarget(_selected);
+		}
 	}
 
 	if (_INPUT.GetButtonDown(KeyType::KEY_0))
@@ -99,6 +114,32 @@ void MainWorld::Update(float deltaTime)
 		physics->SetVelocity(perp * speed + _homePlanet->GetVelocity());
 		GetGameMode<OrbitalGameMode>()->ResetJudgment();
 	}
+
+	// 블랙홀 근처로 이동시키기
+	if (_INPUT.GetButtonDown(KeyType::KEY_1))
+	{
+		UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+		Vector2 center = _blackHole->GetCenterPos();
+		float r = _blackHole->GetEventHorizonRadius() * 3.f;   // 이벤트 호라이즌 바로 바깥 — 렌즈효과가 잘 보이는 거리
+		float speed = sqrtf(_blackHole->GetMu() / r);
+
+		Vector2 dir(0.f, -1.f);
+		Vector2 perp(-dir.y, dir.x);
+
+		_ship->SetCenterPos(center + dir * r);
+		physics->SetVelocity(perp * speed);   // 블랙홀은 고정 위치라 자체 속도를 더할 필요 없음
+		GetGameMode<OrbitalGameMode>()->ResetJudgment();
+
+		_camera.SetPosition(_ship->GetCenterPos());   // 추가 — 보간 없이 즉시 스냅
+		_camera.SetZoomImmediate(0.02f);   // 추가 — 이 스케일(15000 유닛)에 맞는 줌
+	}
+
+	{
+		_widget->SetFuelRatio(_ship->GetFuel() / _ship->GetMaxFuel());
+		_widget->SetHeading(DegreeToRadian(_ship->GetDegree()));
+	}
+
+	_lightingSystem->UpdateStars(deltaTime);
 }
 
 void MainWorld::Render(HDC hdc)
@@ -106,12 +147,35 @@ void MainWorld::Render(HDC hdc)
 	//_starField->Render(hdc, _camera);
 
 	_lightingSystem->BeginRender(_camera);
+
+	// 태양 빛
 	_lightingSystem->RenderSunGlow(_camera.WorldToScreen(_sun->GetCenterPos()),
 		_camera.WorldToScreenScale(_sun->GetBodyRadius() * 15.f), 140);
-	_lightingSystem->ApplyPlanetShadow(
-		_camera.WorldToScreen(_sun->GetCenterPos()),
-		_camera.WorldToScreen(_homePlanet->GetCenterPos()),
-		_camera.WorldToScreenScale(_homePlanet->GetBodyRadius()));
+
+	// 행성 그림자
+	for (auto actor : _actors)
+	{
+		if (actor->GetType() != EActorType::Planet) continue;
+
+		if (actor->GetName() == "Sun") continue;
+		APlanet* planet = static_cast<APlanet*>(actor);
+
+		_lightingSystem->ApplyPlanetShadow(
+			_camera.WorldToScreen(_sun->GetCenterPos()),
+			_camera.WorldToScreen(planet->GetCenterPos()),
+			_camera.WorldToScreenScale(planet->GetBodyRadius()));
+	}
+	
+	float bhScreenRadius = _camera.WorldToScreenScale(_blackHole->GetEventHorizonRadius());
+	bhScreenRadius = clamp(bhScreenRadius, 15.f, 80.f);
+
+	// 블랙홀
+	_lightingSystem->ApplyBlackHoleLensing(
+		_camera.WorldToScreen(_blackHole->GetCenterPos()),
+		bhScreenRadius,100.f);
+	//_lightingSystem->ApplyBlackHoleLensing(
+	//	_camera.WorldToScreen(_blackHole->GetCenterPos()),
+	//	bhScreenRadius,100.f);
 
 	_lightingSystem->EndRender(hdc);
 
@@ -139,49 +203,105 @@ void MainWorld::InitPlanet()
 		sun->SetTexture(RESOURCE.GetTexture(L"Sun"));
 		_sun = sun;
 
-		float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* mercury = SpawnActor<APlanet>();//0.032f
-		mercury->Setup("Mercury", sun->GetCenterPos(), 20000.f, 0.032f, 3.2e6f, 400.f, randomAngle);
-		mercury->SetTexture(RESOURCE.GetTexture(L"Earth"));
+		{ // 수성
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* mercury = SpawnActor<APlanet>();//0.032f
+			mercury->Setup("Mercury", sun->GetCenterPos(), 20000.f, 0.032f, 3.2e6f, 400.f, randomAngle, 0.206f, periAngle);
+			mercury->SetTexture(RESOURCE.GetTexture(L"Mercury"));
+		}
 
-		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* venus = SpawnActor<APlanet>();
-		venus->Setup("Venus", sun->GetCenterPos(), 40000.f, 0.024f, 1.805e7f, 950.f, randomAngle);
-		venus->SetTexture(RESOURCE.GetTexture(L"Earth"));
+		{ // 금성
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* venus = SpawnActor<APlanet>();
+			venus->Setup("Venus", sun->GetCenterPos(), 40000.f, 0.024f, 1.805e7f, 950.f, randomAngle, 0.007f, periAngle);
+			venus->SetTexture(RESOURCE.GetTexture(L"Venus"));
+		}
 
-		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* earth = SpawnActor<APlanet>();
-		earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.02f, /*mu*/ 	2.0e7f, /*bodyRadius*/ 1000.f, randomAngle);
-		earth->SetTexture(RESOURCE.GetTexture(L"Earth"));
-		_homePlanet = earth;
-		_camera.SetPosition(earth->GetCenterPos());
+		{ // 지구
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* earth = SpawnActor<APlanet>();
+			earth->Setup("Earth", sun->GetCenterPos(), 60000.f, 0.02f, 2.0e7f, 1000.f, randomAngle, 0.017f, periAngle);
+			earth->SetTexture(RESOURCE.GetTexture(L"Earth"));
+			_homePlanet = earth;
+			_camera.SetPosition(earth->GetCenterPos());
+		}
 
 
-		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* mars = SpawnActor<APlanet>();
-		mars->Setup("Mars", sun->GetCenterPos(), 80000.f, 0.016f, 6.05e6f, 550.f, randomAngle);
-		mars->SetTexture(RESOURCE.GetTexture(L"Earth"));
+		{ // 화성
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* mars = SpawnActor<APlanet>();
+			mars->Setup("Mars", sun->GetCenterPos(), 80000.f, 0.016f, 6.05e6f, 550.f, randomAngle, 0.093f, periAngle);
+			mars->SetTexture(RESOURCE.GetTexture(L"Mars"));
+		}
 
-		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* jupiter = SpawnActor<APlanet>();
-		jupiter->Setup("Jupiter", sun->GetCenterPos(), 120000.f, 0.009f, 3.2e8f, 4000.f, randomAngle);
-		jupiter->SetTexture(RESOURCE.GetTexture(L"Earth"));
+		{ // 목성
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* jupiter = SpawnActor<APlanet>();
+			jupiter->Setup("Jupiter", sun->GetCenterPos(), 120000.f, 0.009f, 3.2e8f, 4000.f, randomAngle, 0.048f, periAngle);
+			jupiter->SetTexture(RESOURCE.GetTexture(L"Jupiter"));
+		}
 
-		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* saturn = SpawnActor<APlanet>();
-		saturn->Setup("Saturn", sun->GetCenterPos(), 160000.f, 0.007f, 2.048e8f, 3200.f, randomAngle);
-		saturn->SetTexture(RESOURCE.GetTexture(L"Earth"));
+		{ // 토성
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* saturn = SpawnActor<APlanet>();
+			saturn->Setup("Saturn", sun->GetCenterPos(), 160000.f, 0.007f, 2.048e8f, 3200.f, randomAngle, 0.056f, periAngle);
+			saturn->SetTexture(RESOURCE.GetTexture(L"Jupiter"));
+		}
 
-		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* uranus = SpawnActor<APlanet>();
-		uranus->Setup("Uranus", sun->GetCenterPos(), 200000.f, 0.005f, 9.68e7f, 2200.f, randomAngle);
-		uranus->SetTexture(RESOURCE.GetTexture(L"Earth"));
+		{ // 천왕성
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* uranus = SpawnActor<APlanet>();
+			uranus->Setup("Uranus", sun->GetCenterPos(), 200000.f, 0.005f, 9.68e7f, 2200.f, randomAngle, 0.046f, periAngle);
+			uranus->SetTexture(RESOURCE.GetTexture(L"Uranus"));
+		}
 
-		randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
-		APlanet* neptune = SpawnActor<APlanet>();
-		neptune->Setup("Neptune", sun->GetCenterPos(), 240000.f, 0.004f, 8.0e7f, 2000.f, randomAngle);
-		neptune->SetTexture(RESOURCE.GetTexture(L"Earth"));
+		{ // 해왕성
+			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
+			float periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* neptune = SpawnActor<APlanet>();
+			neptune->Setup("Neptune", sun->GetCenterPos(), 240000.f, 0.004f, 8.0e7f, 2000.f, randomAngle, 0.01f, periAngle);
+			neptune->SetTexture(RESOURCE.GetTexture(L"Neptune"));
+		}
 	}
+
+	{
+		_blackHole = SpawnActor<ABlackHole>();
+		_blackHole->Setup(Vector2(500000.f, 300000.f), 1.0e10f, 5000.f);
+	}
+}
+
+void MainWorld::UpdateUIData()
+{
+	OrbitalGameMode* gm = GetGameMode<OrbitalGameMode>();
+	UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+	APlanet* target = _ship->GetTargetPlanet();
+	APlanet* home = gm->GetHomePlanet();
+
+	const wchar_t* stateNames[] = { L"비행 중", L"궤도 안착", L"실패" };
+
+	wchar_t buf[128];
+	swprintf_s(buf, L"속도: %.1f", physics->GetVelocity().Length());
+	_widget->SetLine(0, buf);
+
+	swprintf_s(buf, L"근지점: %.1f", gm->GetPerigee());
+	_widget->SetLine(1, buf);
+
+	swprintf_s(buf, L"원지점: %.1f", gm->GetApogee());
+	_widget->SetLine(2, buf);
+
+	_widget->SetLine(3, stateNames[(int32)gm->GetOrbitState()]);
+
+	swprintf_s(buf, L"중력원: %s", target ? CharToWStringStandard(target->GetName().c_str()).c_str() : L"없음");
+	_widget->SetLine(4, buf);
+
+	_widget->SetFuelRatio(_ship->GetFuel() / _ship->GetMaxFuel());
 }
 
 void MainWorld::OnSceneGUI()
@@ -195,10 +315,19 @@ void MainWorld::OnSceneGUI()
 			ImGui::Text("선택된 행성: %s", p->GetName().c_str());
 	}
 
-	//if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-	//{
-	//
-	//}
+	if (_blackHole)
+	{
+		Vector2 bhPos = _camera.WorldToScreen(_blackHole->GetCenterPos());
+		float bhRadius = _camera.WorldToScreenScale(_blackHole->GetEventHorizonRadius());
+		float effectRadius = bhRadius * 3.5f;
+		ImGui::Text("bhPos: %.1f, %.1f", bhPos.x, bhPos.y);
+		ImGui::Text("bhRadius: %.2f", bhRadius);
+		ImGui::Text("effectRadius: %.2f", effectRadius);
+		ImGui::Text("Glow destSize: %.2f", (effectRadius * 0.8f) * 2.f);
+		ImGui::Text("Zoom: %.5f", _camera.GetZoom());
+		ImGui::Text("AlphaBlend 성공?: %s", _lightingSystem->GetDebugLastGlowOk() ? "true" : "false");
+	}
+
 }
 
 GameMode* MainWorld::CreateGameMode()

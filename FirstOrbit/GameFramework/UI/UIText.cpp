@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "UIText.h"
 
-void UIText::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
+void UIText::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text)
 {
+	SetText(text);
 	SetAnchor(anchor);
 	SetPivot(pivot);
 

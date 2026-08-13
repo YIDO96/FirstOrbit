@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "UIImage.h"
 
-void UIImage::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size)
+void UIImage::Init(EAnchor anchor, EPivot pivot, Vector2 pos, Vector2 size, const std::wstring& text)
 {
 }
 
