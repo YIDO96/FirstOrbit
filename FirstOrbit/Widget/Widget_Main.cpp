@@ -11,6 +11,8 @@
 #include "GameFramework/UI/UIHeadingIndicator.h"
 
 #include "Actor/ASpaceship.h"
+#include "Actor/APlanet.h"
+
 
 void Widget_Main::Init()
 {
@@ -39,6 +41,14 @@ void Widget_Main::Init()
 
 	_headingIndicator = AddChild<UIHeadingIndicator>();
 	_headingIndicator->Init(EAnchor::RightBottom, EPivot::RightBottom, Vector2(-20.f, -20.f), Vector2(60.f, 60.f));
+
+	for (int i = 0; i < kMaxPlanetButtons; ++i)
+	{
+		_planetButtons[i] = AddChild<UIButton>();
+		_planetButtons[i]->SetTexture(buttonTex);
+		_planetButtons[i]->Init(EAnchor::RightTop, EPivot::Center, Vector2(-100.f, 30.f * (i + 1)), btnSize);
+		_planetButtons[i]->SetActive(false);
+	}
 }
 
 void Widget_Main::SetLine(int index, const std::wstring& text)
@@ -55,4 +65,45 @@ void Widget_Main::SetFuelRatio(float ratio)
 void Widget_Main::SetHeading(float radian)
 {
 	_headingIndicator->SetHeading(radian);
+}
+
+void Widget_Main::ShowPlanetButtions(const vector<class APlanet*>& planets)
+{
+	// TODO:
+	// 1. planets를 돌면서 _planetButtons[i]에 SetActive(true) + SetText(..., StringToWString(planets[i]->GetName()), ...)
+	// 2. _planetButtonTargets[i] = planets[i] 로 매핑 기억
+	// 3. SetOnClick([this, i]() { if (_onPlanetSelected) _onPlanetSelected(_planetButtonTargets[i]); })
+	//    (i를 값으로 캡처하는 이유는 위 인사이트 3번 참고)
+	// 4. planets.size()보다 인덱스가 큰 나머지 버튼들은 SetActive(false)로 꺼두기 (재사용 대비)
+
+	int count = min((int)planets.size(), kMaxPlanetButtons);
+
+	for (int i = 0; i < count; ++i)
+	{
+		wstring text = StringToWString(planets[i]->GetName());
+
+		_planetButtons[i]->SetActive(true);
+		_planetButtons[i]->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 5), _planetButtons[i]->GetSize(), text, 16.f);
+
+		_planetButtonTargets[i] = planets[i];
+
+		_planetButtons[i]->SetOnClick([this, i]()
+			{
+				if (_onPlanetSelected) _onPlanetSelected(_planetButtonTargets[i]);
+			});
+	}
+
+	for (int i = count; i < kMaxPlanetButtons; ++i)
+	{
+		// TODO: 나머지는 SetActive(false)
+		_planetButtons[i]->SetActive(false);
+	}
+}
+
+void Widget_Main::HidePlanetButtons()
+{
+	for (UIButton* planetButton : _planetButtons)
+	{
+		planetButton->SetActive(false);
+	}
 }

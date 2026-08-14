@@ -10,11 +10,11 @@ public:
 	using FOnAltitudeChanged = function<void(float)>;
 	using FOnHVChanged = function<void(float)>;
 
-
 	virtual void Init() override;
 	virtual void Update(float deltaTime) override;
 	virtual void Render(HDC hdc) override;
 	virtual void OnGUI() override;
+	
 
 	void UpdateTargetPlanet();
 	void Input(float deltaTime);
@@ -27,6 +27,10 @@ public:
 	// 이벤트 구독 함수
 	void SetOnAltitudeChanged(FOnAltitudeChanged callback) { _onAltitudeChanged = callback; }
 	void SetOnHVChanged(FOnHVChanged callback) { _onHVChanged = callback; }
+
+
+
+	void SetForceHeliocentric(bool force, float duration = 0.f);
 
 	class APlanet* GetTargetPlanet() const { return _targetPlanet; }
 	float GetThrust() const { return _thrust; }
@@ -71,5 +75,9 @@ private:
 	float _fuel = 100.f;
 	float _maxFuel = 100.f;
 	float _fuelConsumeRate = 1.f;
+
+
+	bool _forceHeliocentric = false;
+    float _forceHeliocentricTimer = 0.f;
 };
 

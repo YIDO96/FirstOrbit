@@ -19,6 +19,8 @@ public:
 	virtual void Render(HDC hdc) override;
 
 	virtual void LoadTexture() override;
+	virtual void SetCameraOnGUIDoubleClickedEvent(AActor* target) override;
+
 	void InitPlanet();
 	void UpdateUIData();
 
@@ -33,6 +35,8 @@ public:
 private:
 	class Texture* _bg = nullptr;
 
+	vector<class APlanet*> _planets;
+
 	AActor* _selected = nullptr;
 
 	//class StarField* _starField = nullptr;
@@ -44,4 +48,10 @@ private:
 	class ABlackHole* _blackHole = nullptr;
 
 	class Widget_Main* _widget = nullptr;
+
+	vector<Vector2> _transferPath;
+
+
+	class APlanet* _transferTarget = nullptr;
+	bool _transferCaptured = false;
 };

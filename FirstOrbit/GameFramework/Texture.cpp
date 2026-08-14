@@ -149,7 +149,7 @@ void Texture::RenderRotated(HDC hdc, Vector2 centerPos, float radian, Vector2 de
 		{ -halfX,  halfY }  // 좌하
 	};
 
-	// 삼각함수를 이용하여 3개 꼭짓점을 중심점(centerPos) 기준으로 월드 회전 변환
+	// 삼각함수를 이용하여 3개 꼭짓점을 중심점(centerPos) 기준으로 월드 회전 변환p
 	POINT destPoints[3];
 
 	for (int i = 0; i < 3; ++i)

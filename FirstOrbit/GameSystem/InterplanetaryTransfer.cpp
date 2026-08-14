@@ -1,0 +1,123 @@
+#include "pch.h"
+#include "InterplanetaryTransfer.h"
+
+#include "Actor/APlanet.h"
+#include "Lambert.h"
+
+static float ComputeHohmannTOF(float r1, float r2, float mu)
+{
+	float a_t = (r1 + r2) * 0.5f;
+	return 3.14159265f * sqrtf(a_t * a_t * a_t / mu);
+}
+
+static TransferPlan ScanTOFRange(Vector2 shipPos, Vector2 shipVel, APlanet* target, float sunMu,
+	float tofMin, float tofMax, int sampleCount)
+{
+	TransferPlan best;
+	best.totalDeltaV = FLT_MAX;
+
+	for (int i = 0; i < sampleCount; ++i)
+	{
+		float tof = tofMin + (tofMax - tofMin) * i / (float(sampleCount - 1));
+
+		Vector2 r2 = target->GetFuturePos(tof);
+		LambertResult lam = SolveLambert(shipPos, r2, tof, sunMu);
+		if (not lam.valid) continue;
+
+		Vector2 targetVelAtArrival = target->GetFutureVelocity(tof);
+
+		float dv1 = (lam.v1 - shipVel).Length();
+		float dv2 = (targetVelAtArrival - lam.v2).Length();
+		float totalDv = dv1 + dv2;
+
+		if (totalDv < best.totalDeltaV)
+		{
+			best.tof = tof;
+			best.v1 = lam.v1;
+			best.arrivalPos = r2;
+			best.totalDeltaV = totalDv;
+			best.valid = true;
+		}
+	}
+
+	return best;
+}
+
+TransferPlan FindBestTransfer(Vector2 shipPos, Vector2 shipVel, APlanet* target, float sunMu)
+{
+	float r1 = shipPos.Length();
+	float r2Now = target->GetCenterPos().Length();
+	float hohmannTOF = ComputeHohmannTOF(r1, r2Now, sunMu);
+
+	float tofMin = hohmannTOF * 0.3f;
+	float tofMax = hohmannTOF * 2.5f;
+
+	constexpr int coarseSampleCount = 20;
+	constexpr int fineSampleCount = 80;
+	constexpr float margin = 1.5f;
+
+
+	TransferPlan coarse = ScanTOFRange(shipPos, shipVel, target, sunMu, tofMin, tofMax, coarseSampleCount);
+	if (not coarse.valid) return coarse;
+
+	float coarseStep = (tofMax - tofMin) / float(coarseSampleCount - 1);
+
+
+	float fineMin = coarse.tof - coarseStep * margin;
+	float fineMax = coarse.tof + coarseStep * margin;
+
+	TransferPlan fine = ScanTOFRange(shipPos, shipVel, target, sunMu, fineMin, fineMax, fineSampleCount);
+	return fine.valid ? fine : coarse;
+}
+
+vector<Vector2> PredictTransferPath(Vector2 pos, Vector2 vel, Vector2 sunPos, float sunMu, float tof, int steps)
+{
+	vector<Vector2> path;
+	path.reserve(steps);
+
+	float dt = tof / steps;
+
+	auto ComputeAccel = [&](Vector2 p) -> Vector2
+		{
+			Vector2 dir = sunPos - p;
+			float r2 = dir.LengthSquared();
+			float r = sqrtf(r2);
+
+			return dir * (sunMu / (r2 * r));
+		};
+
+	for (int i = 0; i < steps; ++i)
+	{
+		Vector2 k1_x = vel;			// 시작점의 속도
+		Vector2 k1_v = ComputeAccel(pos);			// 시작점의 가속도
+
+		// K2
+		Vector2 x_k2 = pos + k1_x * (dt* 0.5f);
+		Vector2 v_k2 = vel + k1_v * (dt * 0.5f);
+		Vector2 k2_x = v_k2;			// K2에서의 속도
+		Vector2 k2_v = ComputeAccel(x_k2);			// K2에서의 가속도
+
+		// K3
+		Vector2 x_k3 = pos + k2_x * (dt * 0.5f);
+		Vector2 v_k3 = vel + k2_v * (dt * 0.5f);
+		Vector2 k3_x = v_k3;			// K3에서의 속도
+		Vector2 k3_v = ComputeAccel(x_k3);			// K3에서의 가속도
+
+		// K4
+		Vector2 x_k4 = pos + k3_x * dt;
+		Vector2 v_k4 = vel + k3_v * dt;
+		Vector2 k4_x = v_k4;			// K4에서의 속도
+		Vector2 k4_v = ComputeAccel(x_k4);			// K4에서의 가속도
+
+		Vector2 newPos = pos + (k1_x + 2.f * k2_x + 2.f * k3_x + k4_x) * (dt / 6.f);
+		Vector2 newVel = vel + (k1_v + 2.f * k2_v + 2.f * k3_v + k4_v) * (dt / 6.f);
+
+		pos = newPos;
+		vel = newVel;
+
+
+		path.push_back(pos);
+	}
+
+	return path;
+}

@@ -78,16 +78,7 @@ void APlanet::Setup(string name, Vector2 orbitCenter, float semiMajorAxis, float
 Vector2 APlanet::GetVelocity() const
 {
 	float E = SolveKeplerEquation(_meanAnomaly, _eccentricity);
-	float r = _semiMajorAxis * (1.f - _eccentricity * cosf(E));
-
-
-	float factor = (_orbitSpeed * _semiMajorAxis * _semiMajorAxis) / r;
-	float vx_pf = -factor * sinf(E);
-	float vy_pf = factor * sqrtf(1.f - _eccentricity * _eccentricity) * cosf(E);
-
-	float c = cosf(_argPeriapsis), s = sinf(_argPeriapsis);
-
-	return Vector2(vx_pf * c - vy_pf * s, vx_pf * s + vy_pf * c);
+	return ComputeVelocityAtEccentricAnomaly(E);
 }
 
 Vector2 APlanet::GetAcceleration() const
@@ -109,6 +100,13 @@ Vector2 APlanet::GetFuturePos(float t) const
 	return ComputePositionAtMeanAnomaly(_meanAnomaly + _orbitSpeed * t);
 }
 
+Vector2 APlanet::GetFutureVelocity(float t) const
+{
+	float futureM = _meanAnomaly + _orbitSpeed * t;
+	float E = SolveKeplerEquation(futureM, _eccentricity);
+	return ComputeVelocityAtEccentricAnomaly(E);
+}
+
 float APlanet::GetSOIRadius(float parentMu) const
 {
 	if (parentMu <= 0.f or _mu >= parentMu) return 0.f;
@@ -116,12 +114,45 @@ float APlanet::GetSOIRadius(float parentMu) const
 	return _semiMajorAxis * powf(_mu / parentMu, 0.4f);
 }
 
+vector<Vector2> APlanet::GetOrbitShape(int steps) const
+{
+	vector<Vector2> points;
+	points.reserve(steps + 1);
+
+	for (int i = 0; i <= steps; ++i)
+	{
+		float E = (2.f * 3.14159265f * i) / steps; // 케플러 방정식 안 풀고 E를 직접 훑음
+		points.push_back(ComputePositionAtEccentricAnomaly(E));
+	}
+
+	return points;
+}
+
 Vector2 APlanet::ComputePositionAtMeanAnomaly(float meanAnomaly) const
 {
 	float E = SolveKeplerEquation(meanAnomaly, _eccentricity);
+
+	return ComputePositionAtEccentricAnomaly(E);
+}
+
+Vector2 APlanet::ComputePositionAtEccentricAnomaly(float E) const
+{
 	float nu = 2.f * atan2f(sqrtf(1.f + _eccentricity) * sinf(E * 0.5f),
-		sqrtf(1.f - _eccentricity) * cosf(E * .5f));
+							sqrtf(1.f - _eccentricity) * cosf(E * 0.5f));
 	float r = _semiMajorAxis * (1.f - _eccentricity * cosf(E));
 
 	return _orbitCenter + Vector2(cosf(nu + _argPeriapsis), sinf(nu + _argPeriapsis)) * r;
+}
+
+Vector2 APlanet::ComputeVelocityAtEccentricAnomaly(float E) const
+{
+	float r = _semiMajorAxis * (1.f - _eccentricity * cosf(E));
+
+	float factor = (_orbitSpeed * _semiMajorAxis * _semiMajorAxis) / r;
+	float vx_pf = -factor * sinf(E);
+	float vy_pf = factor * sqrtf(1.f - _eccentricity * _eccentricity) * cosf(E);
+
+	float c = cosf(_argPeriapsis), s = sinf(_argPeriapsis);
+
+	return Vector2(vx_pf * c - vy_pf * s, vx_pf * s + vy_pf * c);
 }

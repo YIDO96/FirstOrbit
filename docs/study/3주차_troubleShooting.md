@@ -846,3 +846,331 @@ if (_INPUT.GetButtonDown(KeyType::LeftMouse))
 > 📌 "빈 우주를 클릭하면 추적이 풀린다"는 의도된 기능이라(자유 카메라로 전환하는 용도),
 > "액터를 클릭했을 때만 타겟을 바꾼다"로 조건을 바꾸는 대신, "ImGui/자체 UI를 클릭한 경우만
 > 예외 처리"하는 방향으로 감. 기능은 유지하면서 오작동만 막음.
+
+---
+
+# Part 13. 기능 구현 요약 (행성간 자동 전이)
+
+로드맵 "마무리" 단계의 마지막 큰 기능. "우주선을 피킹 → 행성 버튼 생성 → 클릭하면 궤도 계산해서
+자동으로 날아감"을 목표로, 필요한 물리(케플러 궤도, 람베르트 문제)부터 공부하면서 구현함.
+이 아래(Part 14~)는 그 과정에서 만난 버그들.
+
+## 케플러 타원 궤도 (`APlanet`)
+- 기존 원궤도(`_orbitRadius`, 각도만 증가)를 실제 이심률이 있는 타원 궤도로 교체.
+  `_meanAnomaly`(M, 시간에 따라 균일 증가) → `SolveKeplerEquation`(뉴턴법 6회 반복, `E = M + e·sinE`가
+  초월방정식이라 대수적으로 못 풀어서)로 이심 근점이각(E) → 진근점이각(ν) → 위치·속도 순으로 변환.
+- `GetOrbitShape(steps)`는 시간과 무관하게 E를 0~2π로 직접 훑어서 궤도 "모양"만 그림 (케플러 방정식을
+  풀 필요가 없음 — 모양은 시간에 안 달림).
+
+## 람베르트 문제 (`Util::SolveLambert` → 이후 `Lambert.h/.cpp`로 분리)
+- 케플러 방정식의 역문제: 두 위치(r1, r2)와 이동 시간(TOF)을 주면 그 둘을 잇는 데 필요한 속도(v1, v2)를
+  구함. Universal Variable 방법(Stumpff 함수 C(z)/S(z), z에 대한 이분법)으로 구현.
+- 이분법을 뉴턴법 대신 고른 이유: 버튼 한 번 누를 때 한 번만 도는 계산이라 수렴 속도보다 안정성이
+  더 중요했음.
+
+## TOF 스캔 (`InterplanetaryTransfer::FindBestTransfer`)
+- 호만 전이 시간을 대략적인 기준으로 잡고, 그 0.3~2.5배 범위에서 TOF 후보들을 훑어 람베르트를 반복
+  실행 → 총 Δv(출발+도착)가 최소인 조합을 선택. coarse(20개)로 넓게 훑고 그 근처를 fine(80개)으로
+  촘촘하게 다시 훑는 2단계 탐색으로, 같은 샘플 예산으로 정밀도를 끌어올림.
+
+## 우주선 피킹 → 자동 실행 → 시각화
+- 우주선을 클릭(또는 ImGui 트리에서 더블클릭)하면 `Widget_Main`에 행성 버튼들이 뜨고, 누르면
+  `FindBestTransfer`로 계산한 속도(`plan.v1`)를 즉시 우주선에 적용.
+- 계산된 궤적을 `PredictTransferPath`(태양 중심 2체 문제만 가정한 별도 RK4 전파 함수)로 미리 그려서
+  화면에 점선으로 표시.
+
+---
+
+# Part 14. 케플러 타원 궤도 버그
+
+## 34. 행성들이 전부 겹쳐 보임 (위치 계산에서 반지름 곱셈 누락)
+
+**증상**
+타원 궤도로 바꾼 직후, 모든 행성이 태양 바로 옆 한 점에 겹쳐서 보임.
+
+**원인**
+```cpp
+Vector2 APlanet::ComputePositionAtEccentricAnomaly(float E) const
+{
+    float nu = ...;
+    float r = _semiMajorAxis * (1.f - _eccentricity * cosf(E));
+    return _orbitCenter + Vector2(cosf(nu + _argPeriapsis), sinf(nu + _argPeriapsis));   // ← r 안 곱함
+}
+```
+방향(단위벡터)만 계산하고 실제 거리(`r`)를 곱하는 걸 빠뜨려서, 모든 행성이 태양에서 반지름 1
+거리에 위치하게 됨.
+
+**해결**
+```cpp
+return _orbitCenter + Vector2(cosf(nu + _argPeriapsis), sinf(nu + _argPeriapsis)) * r;
+```
+
+---
+
+## 35. `Setup()`에서 이심률/근일점 인자를 멤버에 대입 안 함
+
+**증상**
+34번을 고쳐도 궤도가 여전히 완벽한 원 — 이심률을 줘도 반영이 안 됨.
+
+**원인**
+`Setup()`이 `eccentricity`/`argPeriapsis`를 매개변수로는 받으면서, 정작 `_eccentricity`/`_argPeriapsis`
+멤버 변수에는 대입하는 줄이 빠져있었음(둘 다 기본값 0으로 남음 → 원운동 공식과 동일해짐).
+
+**해결**
+```cpp
+_eccentricity = eccentricity;
+_argPeriapsis = argPeriapsis;
+```
+> 📌 검증은 ImGui로 실시간 거리 숫자를 찍어서 확인(수성 기준 근일점~원일점 15880~24120 사이를
+> 오가는 것 확인) → 이후 눈으로도 "태양이 궤도 링 안에서 한쪽으로 치우쳐 보이는지"로 재확인.
+> 이심률이 작을 때(수성 e=0.206)는 궤도 "모양"(장단축비 `b/a=√(1-e²)`≈97.9%)은 원이랑 거의
+> 구분 안 되지만, 초점 오프셋(`c=a·e`≈20.6%)은 뚜렷이 보인다는 걸 직접 확인하며 배움.
+
+---
+
+# Part 15. 호만 전이 시간 공식 오타 — 이번 시리즈에서 가장 파급력 컸던 버그
+
+## 36. `ComputeHohmannTOF`의 장반경 공식이 덧셈 대신 곱셈 (스캔 범위가 수백만 배 벌어짐)
+
+**증상**
+행성 버튼을 눌러도 `FindBestTransfer`가 계속 `valid=false`를 반환 — 전이 궤적이 아예 안 그려짐.
+(처음엔 UI 연동 버그로 의심하고 그쪽을 먼저 다 고쳤는데도 재현됨.)
+
+**원인**
+```cpp
+static float ComputeHohmannTOF(float r1, float r2, float mu)
+{
+    float a_t = (r1 * r2) * 0.5f;   // ← + 여야 할 자리에 *
+    return 3.14159265f * sqrtf(a_t * a_t * a_t / mu);
+}
+```
+호만 전이 궤도의 장반경은 두 반지름의 **평균**(`(r1+r2)/2`)인데 곱(`r1*r2`)으로 되어있었음.
+지구(반지름 60000)→금성(반지름 40000) 기준으로 계산해보면:
+- 맞는 값: `a_t=(60000+40000)/2=50000` → `TOF≈654.5`
+- 버그 값: `a_t=(60000*40000)/2=12억` → `TOF≈24억` (약 370만 배)
+
+`FindBestTransfer`가 스캔하는 TOF 범위(`hohmannTOF`의 0.3~2.5배)가 통째로 실제 스케일보다
+수백만 배 큰 값으로 잡혀서, `SolveLambert`의 이분법이 그 범위 안에서 유효한 해를 못 찾고 계속
+`invalid`를 반환함.
+
+**해결**
+```cpp
+float a_t = (r1 + r2) * 0.5f;
+```
+> 📌 이 파일(`InterplanetaryTransfer.cpp`)의 초기 뼈대를 만들 때부터 있던 버그로, 케플러 궤도 검증
+> 때처럼 눈에 보이는 이상(모양이 이상함)이 아니라 "그냥 아무 결과도 안 나옴"이라 원인 후보를
+> 좁히는 데 오래 걸림 — 결국 관련 함수를 하나씩 다시 읽으면서 발견.
+
+---
+
+# Part 16. 행성 버튼 UI 연동(Step5) 리뷰 중 발견된 버그들
+
+## 37. `ShowPlanetButtions`가 버튼 배열 크기만큼 도는데 그 안에서 `planets[i]`를 읽음
+
+**증상 (코드 리뷰 중 발견)**
+```cpp
+for (int i = 0; i < kMaxPlanetButtons; ++i)   // 버튼 배열 크기(9) 기준
+{
+    wstring text = StringToWString(planets[i]->GetName());   // planets는 호출자가 넘긴 벡터
+    ...
+}
+```
+버튼 배열 크기(`kMaxPlanetButtons`)와 실제로 넘어온 목적지 목록(`planets`)의 크기가 같다는 보장이
+없음 — 지금은 우연히 행성 개수와 버튼 개수가 같아서 안 터졌지만, 목적지 필터링(현재 위치한 행성
+제외 등)을 넣는 순간 범위를 벗어난 메모리를 읽게 됨.
+
+**해결**
+```cpp
+int count = min((int)planets.size(), kMaxPlanetButtons);
+for (int i = 0; i < count; ++i) { ... }
+for (int i = count; i < kMaxPlanetButtons; ++i) { /* 남는 버튼은 꺼두기 */ }
+```
+
+---
+
+## 38. 매핑·클릭 콜백 자체가 통째로 빠짐
+
+**증상**
+버튼에 행성 이름은 뜨는데, 눌러도 아무 반응이 없음.
+
+**원인**
+TODO로 남겨뒀던 "버튼 인덱스 → 행성 매핑 저장"과 "`SetOnClick`에서 콜백 호출" 두 줄이 처음
+구현에서 빠짐 — 텍스트만 채우고 정작 클릭 시 할 일을 안 넣음.
+
+**해결**
+```cpp
+_planetButtonTargets[i] = planets[i];
+_planetButtons[i]->SetOnClick([this, i]()
+    {
+        if (_onPlanetSelected) _onPlanetSelected(_planetButtonTargets[i]);
+    });
+```
+> 📌 람다에서 `i`를 값으로 캡처(`[this, i]`)하는 게 중요 — 참조로 캡처(`[this, &i]`)하면 반복문이
+> 끝난 뒤의 `i` 마지막 값 하나를 모든 버튼이 공유하게 됨(자바스크립트 `var` 클로저 문제와 동일한
+> 종류의 실수).
+
+---
+
+## 39. `Widget::IsMouseOverUI`가 비활성(`SetActive(false)`) 버튼도 그대로 판정 — 숨긴 버튼 자리가 클릭 사각지대가 됨
+
+**증상**
+평소(버튼이 안 보이는 상태)에도 화면 우측 상단(행성 버튼들이 배치된 자리) 근처를 클릭하면
+행성/블랙홀 피킹이 안 됨.
+
+**원인**
+```cpp
+bool Widget::IsMouseOverUI(Vector2 mousePos) const
+{
+    for (UIBase* child : _children)
+        if (child->IsHoverInUI(mousePos)) return true;   // _isActive 체크 없음
+    return false;
+}
+```
+33번에서 고친 `IsMouseOverUI`가 활성 상태는 확인하지 않고 자식들의 화면 좌표 범위만 검사함.
+행성 버튼 9개는 안 보이는 동안에도(`SetActive(false)`) `_children`에 계속 남아있어서, 그 자리를
+클릭하면 "내 UI를 클릭했다"고 오판해 월드 피킹으로 안 넘어감.
+
+**해결**
+```cpp
+for (UIBase* child : _children)
+{
+    if (!child->IsActive()) continue;   // 추가
+    if (child->IsHoverInUI(mousePos)) return true;
+}
+```
+> 📌 33번과 같은 함수의 같은 종류의 문제가 새 사용처(토글되는 버튼)에서 다시 드러난 사례 — 처음
+> 고칠 때는 "항상 켜져 있는 UI"만 대상이라 안 드러났던 전제(활성 상태 무시)가, 나중에 "껐다 켜는
+> UI"가 추가되면서 진짜 버그로 발현됨.
+
+---
+
+# Part 17. 전이 궤적 시각화(Step6) 버그
+
+## 40. RK4 전파 함수에 `UPhysicsComponent` 전용 코드가 그대로 딸려와 컴파일 에러
+
+**증상**
+`PredictTransferPath` 작성 후 빌드 실패.
+
+**원인**
+```cpp
+pos = newPos;
+vel = newVel;
+
+GetOwner()->SetCenterPos(newPos);   // UPhysicsComponent::PhysicsStep에서 그대로 복사해온 줄
+_velocity = newVel;                  // 이 함수(자유 함수)엔 GetOwner()도 _velocity도 없음
+```
+`UPhysicsComponent::PhysicsStep`의 RK4 계산을 참고해서 옮기는 과정에서, 그 함수가 컴포넌트
+멤버라서만 유효했던 두 줄(`GetOwner()`, `_velocity`)까지 그대로 딸려옴.
+
+**해결**
+두 줄 삭제 — 바로 위 `pos = newPos; vel = newVel;`로 이미 로컬 상태 갱신이 끝나있었음.
+
+---
+
+## 41. 함수 이름이 선언부와 정의부에서 미묘하게 달라 컴파일 에러
+
+**증상**
+`vPredictTransferPath`로 정의해뒀는데 호출부에서는 `PredictTransferPath`로 불러서 "정의 안 된
+식별자" 에러.
+
+**원인**
+`vector<Vector2>` 타이핑 도중 실수로 함수 이름 맨 앞에 `v`가 붙은 채로 굳어짐 — 처음엔 "기능엔
+지장 없다"고 넘어갔는데, 이후 호출부를 작성할 때 원래 의도했던 이름(`PredictTransferPath`)으로
+불러서 불일치가 발생.
+
+**해결**
+선언·정의·호출부 세 곳 모두 `PredictTransferPath`로 통일.
+
+---
+
+## 42. 궤적 시작 위치를 우주선 현재 위치가 아니라 "도착 지점"으로 넣음
+
+**증상**
+전이 버튼을 눌러도 궤적 점선이 우주선이 아니라 전혀 다른 곳에서 시작해서 엉뚱한 방향으로 그려짐.
+
+**원인**
+```cpp
+_transferPath = PredictTransferPath(plan.arrivalPos, plan.v1, _sun->GetCenterPos(), _sun->GetMu(), plan.tof, 200);
+//                                   ^^^^^^^^^^^^^^^ 도착 지점을 출발 위치 자리에 넣음
+```
+속도(`plan.v1`)는 맞게 넣었는데 첫 인자(출발 위치)에 우주선의 현재 위치 대신 `plan.arrivalPos`
+(목적지가 도착 시점에 있을 자리)를 넣어서, "목적지에서 v1 속도로 출발하면 어디로 가는지"라는
+전혀 다른 궤적을 그리고 있었음.
+
+**해결**
+```cpp
+_transferPath = PredictTransferPath(_ship->GetCenterPos(), plan.v1, _sun->GetCenterPos(), _sun->GetMu(), plan.tof, 200);
+```
+
+---
+
+# Part 18. 람베르트의 물리 가정과 실제 SOI 물리의 불일치
+
+## 43. 계산된 궤적대로 안 가고 출발 행성 중력에 휘어짐 ("지 멋대로 가는" 것처럼 보임)
+
+**증상**
+전이를 실행하면 우주선이 계산된 궤적(흰 점선)을 안 따라가고, 출발 지점 근처에서 갈고리처럼
+휘어진 뒤 엉뚱하게 날아감. (36번 호만 공식을 고친 뒤에도 재현.)
+
+**원인**
+`SolveLambert`가 계산한 `plan.v1`은 "출발부터 도착까지 태양 중력만 작용한다"는 순수 2체 문제를
+가정한 값인데, 실제로 그 속도를 받는 `UPhysicsComponent::ComputeAcceleration()`은 그렇게 동작하지
+않음 — `ship->GetTargetPlanet()`(SOI 판정으로 매 프레임 갱신되는, "지금 가장 영향력 큰 천체")의
+중력만 적용함. 버튼을 눌러 속도만 바뀌는 순간 우주선은 여전히 출발 행성의 SOI 안(위치는 안
+바뀌므로)에 있어서, 물리 엔진은 태양이 아니라 출발 행성 중력으로 가속시킴 — 람베르트의 가정과
+실제 물리가 어긋남.
+
+**해결**
+`ASpaceship`에 "강제 헬리오센트릭" 모드를 추가 — 전이 실행 시점에 `SetTargetPlanet(_sun)`으로
+강제 고정하고, `plan.tof` 동안은 `UpdateTargetPlanet()`의 자동 SOI 판정을 건너뛰게 타이머로 막음.
+```cpp
+// ASpaceship::UpdateTargetPlanet()
+if (_forceHeliocentric) return;   // 강제 모드 중엔 자동 판정 스킵
+```
+타이머가 끝나면 자동 판정이 다시 켜지고, 그 시점엔 실제 물리(RK4)가 태양 중력만 받으며 진행돼
+있어서 `PredictTransferPath`(똑같은 RK4·똑같은 태양 중력으로 미리 계산한 경로)와 실제 궤적이
+거의 일치하게 됨.
+> 📌 애초에 "SOI 밖(태양이 타겟일 때)에만 전이 버튼 활성화"로 막는 방안도 고려했지만, "지구를
+> 돌고 있어도 버튼을 누르면 그 즉시 목적지로 날아가야 한다"는 요구사항이라 게이트 방식 대신
+> 이 강제 전환 방식을 선택함.
+
+---
+
+## 44. 목적지에 도착해도 궤도에 안착하지 않고 스쳐 지나감
+
+**증상**
+43번을 고쳐서 계산된 경로대로 날아가는 것까지는 되는데, 목적지 행성 근처에서 궤도에 안착하지
+않고 옆을 스쳐 지나감(플라이바이).
+
+**원인**
+`FindBestTransfer`/`ScanTOFRange`가 총 Δv(`dv1+dv2`)를 최소화하는 과정에서 "도착 시 필요한
+감속량"(`dv2`)까지는 계산하지만, `TransferPlan`엔 출발 속도(`v1`)만 저장하고 도착 속도는 아예
+저장하지 않음 — 그래서 실제로 적용되는 건 출발 버튼(`plan.v1`)뿐이고, 도착 시 목적지 행성 속도에
+맞춰주는 두 번째 버튼이 없음. 게다가 람베르트가 겨냥하는 지점은 목적지 행성의 **중심**이라, 설령
+속도까지 정확히 맞춘다 해도 "궤도 진입"이 아니라 "충돌/겹침"이 되어 애초에 궤도 매칭 방식과는
+맞지 않음.
+
+**해결**
+정직한 속도 매칭 대신, **목적지 SOI 진입을 감지해서 그 자리에서 원궤도 속도로 스냅**시키는 방식을
+채택(기존 `KEY_0` 디버그 코드의 "원궤도 속도 = √(μ/r), 반지름에 수직 방향" 패턴 재사용).
+```cpp
+// MainWorld::Update()
+if (_transferTarget and not _transferCaptured and _ship->GetTargetPlanet() == _transferTarget)
+{
+    Vector2 toShip = _ship->GetCenterPos() - _transferTarget->GetCenterPos();
+    float r = max(toShip.Length(), 1.f);
+    Vector2 dir = toShip / r;
+    Vector2 perp(-dir.y, dir.x);
+    float speed = sqrtf(_transferTarget->GetMu() / r);
+
+    physics->SetVelocity(perp * speed + _transferTarget->GetVelocity());
+    _transferCaptured = true;
+}
+```
+`_forceHeliocentric` 타이머가 끝나 자동 SOI 판정이 재개되면서 `GetTargetPlanet()`이 목적지
+행성으로 바뀌는 순간을 감지해, 그 즉시(어느 거리에서 잡히든 그 거리 기준으로) 원궤도 속도로
+스냅시킴. 순간적인 속도 변경이라 완전히 "사실적"이진 않지만, 이 프로젝트의 다른 모든 속도 변경
+(추력, 디버그 텔레포트, 출발 버튼 자체)도 전부 같은 임펄스 방식이라 일관성은 있음.
+> 📌 도착 이후(궤도에 스냅된 뒤)는 다시 플레이어의 수동 조작(추력)으로 넘어감 — 자동화는
+> "행성간 전이"라는 계산이 어려운 구간만 담당하고, 착륙/정밀 궤도 조정처럼 손맛이 필요한 부분은
+> 그대로 플레이어 몫으로 남겨두는 설계.

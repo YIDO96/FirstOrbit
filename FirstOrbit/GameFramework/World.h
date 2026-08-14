@@ -59,7 +59,7 @@ public:
     virtual void ResetCamera(Vector2 pos) {}
 
     void SetCameraPos(Vector2 pos) { _camera.SetPosition(pos); }
-    void SetCameraOnGUIDoubleClickedEvent(AActor* target);
+    virtual void SetCameraOnGUIDoubleClickedEvent(AActor* target);
 
     AActor* GetActor(int idx) const { return _actors[idx]; }
     int32 GetActorCount() const { return _actors.size(); }

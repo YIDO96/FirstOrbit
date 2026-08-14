@@ -27,6 +27,13 @@ void ASpaceship::Init()
 void ASpaceship::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
+	if (_forceHeliocentric)
+	{
+		_forceHeliocentricTimer -= deltaTime;
+		if (_forceHeliocentricTimer <= 0.f)
+			_forceHeliocentric = false;
+	}
+
 
 	UpdateTargetPlanet();
 
@@ -130,6 +137,8 @@ void ASpaceship::OnGUI()
 
 void ASpaceship::UpdateTargetPlanet()
 {
+	if (_forceHeliocentric) return;   // 강제 모드 중엔 SOI 자동 판정 스킵
+
 	APlanet* dominant = nullptr;
 	for (int32 i = 0; i < _ownerWorld->GetActorCount(); ++i)
 	{
@@ -195,4 +204,10 @@ void ASpaceship::Reset()
 	_keyInput = KeyType::L;
 	_trail.clear();
 	_trailSampleTimer = 0.f;
+}
+
+void ASpaceship::SetForceHeliocentric(bool force, float duration)
+{
+	_forceHeliocentric = force;
+	_forceHeliocentricTimer = duration;
 }

@@ -13,6 +13,7 @@
 #include "Actor/ASpaceship.h"
 
 #include "GameSystem/SpaceLightingSystem.h"
+#include "GameSystem/InterplanetaryTransfer.h"
 #include "GameMode/OrbitalGameMode.h"
 
 #include "Actor/StarField.h"
@@ -75,12 +76,43 @@ void MainWorld::Enter()
 	_widget = UI.CreateWidget<Widget_Main>();
 	_widget->SetOwnerWorld(this);
 	_widget->BindShip(_ship);
+	_widget->SetOnPlanetSelected([this](APlanet* target)
+		{
+			UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+			TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), target, _sun->GetMu());
+
+			if (plan.valid)
+			{
+				_transferPath = PredictTransferPath(_ship->GetCenterPos(), plan.v1, _sun->GetCenterPos(), _sun->GetMu(), plan.tof, 200);
+				_ship->SetTargetPlanet(_sun);
+				_ship->SetForceHeliocentric(true, plan.tof);
+				physics->SetVelocity(plan.v1);
+
+				_transferTarget = target;
+				_transferCaptured = false;
+			}
+
+			_widget->HidePlanetButtons();
+		});
+
 }
 
 void MainWorld::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
 
+	if (_transferTarget and not _transferCaptured and _ship->GetTargetPlanet() == _transferTarget)
+	{
+		UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+		Vector2 toShip = _ship->GetCenterPos() - _transferTarget->GetCenterPos();
+		float r = max(toShip.Length(), 1.f);
+		Vector2 dir = toShip / r;
+		Vector2 perp(-dir.y, dir.x);
+		float speed = sqrtf(_transferTarget->GetMu() / r);
+
+		physics->SetVelocity(perp * speed + _transferTarget->GetVelocity());
+		_transferCaptured = true;
+	}
 	
 	// 아직 게임플레이 콘텐츠가 없어서, G 키로 게임오버 전환을 임시로 시연한다.
 	if (_INPUT.GetButtonDown(KeyType::P))
@@ -97,6 +129,10 @@ void MainWorld::Update(float deltaTime)
 			Vector2 worldPos = _camera.WorldToMousePos(mousePos);
 			_selected = PickActor(worldPos);
 			_camera.SetFollowTarget(_selected);
+
+			if (_selected == _ship)
+				_widget->ShowPlanetButtions(_planets);
+			else _widget->HidePlanetButtons();
 		}
 	}
 
@@ -173,11 +209,29 @@ void MainWorld::Render(HDC hdc)
 	_lightingSystem->ApplyBlackHoleLensing(
 		_camera.WorldToScreen(_blackHole->GetCenterPos()),
 		bhScreenRadius,100.f);
-	//_lightingSystem->ApplyBlackHoleLensing(
-	//	_camera.WorldToScreen(_blackHole->GetCenterPos()),
-	//	bhScreenRadius,100.f);
 
 	_lightingSystem->EndRender(hdc);
+
+	// 행성 궤도 모양 (은은한 점섬)
+	for (auto planet : _planets)
+	{
+		if (planet == _sun) continue;
+
+		vector<Vector2> shape = planet->GetOrbitShape(150);
+		for (const Vector2& p : shape)
+		{
+			Vector2 s = _camera.WorldToScreen(p);
+			::SetPixel(hdc, (int)s.x, (int)s.y, RGB(255, 255, 0));
+		}
+	}
+
+	for (Vector2 pos : _transferPath)
+	{
+		Vector2 s = _camera.WorldToScreen(pos);
+		::SetPixel(hdc, (int)s.x, (int)s.y, RGB(255, 255, 255));
+	}
+
+
 
 	Super::Render(hdc);
 
@@ -194,6 +248,14 @@ void MainWorld::LoadTexture()
 
 }
 
+void MainWorld::SetCameraOnGUIDoubleClickedEvent(AActor* target)
+{
+	Super::SetCameraOnGUIDoubleClickedEvent(target);
+
+	if (target == _ship) _widget->ShowPlanetButtions(_planets);
+	else _widget->HidePlanetButtons();
+}
+
 void MainWorld::InitPlanet()
 {
 	// 태양계 행성들을 생성하고 초기화
@@ -202,6 +264,7 @@ void MainWorld::InitPlanet()
 		sun->Setup("Sun", Vector2(0, 0), 0.f, 0.f, 2.88e9f, 12000.f);
 		sun->SetTexture(RESOURCE.GetTexture(L"Sun"));
 		_sun = sun;
+		_planets.push_back(_sun);
 
 		{ // 수성
 			float randomAngle = ((float)rand() / RAND_MAX) * 6.283185f; // 0 ~ 2*PI 랜덤
@@ -209,6 +272,8 @@ void MainWorld::InitPlanet()
 			APlanet* mercury = SpawnActor<APlanet>();//0.032f
 			mercury->Setup("Mercury", sun->GetCenterPos(), 20000.f, 0.032f, 3.2e6f, 400.f, randomAngle, 0.206f, periAngle);
 			mercury->SetTexture(RESOURCE.GetTexture(L"Mercury"));
+
+			_planets.push_back(mercury);
 		}
 
 		{ // 금성
@@ -217,6 +282,8 @@ void MainWorld::InitPlanet()
 			APlanet* venus = SpawnActor<APlanet>();
 			venus->Setup("Venus", sun->GetCenterPos(), 40000.f, 0.024f, 1.805e7f, 950.f, randomAngle, 0.007f, periAngle);
 			venus->SetTexture(RESOURCE.GetTexture(L"Venus"));
+
+			_planets.push_back(venus);
 		}
 
 		{ // 지구
@@ -227,6 +294,8 @@ void MainWorld::InitPlanet()
 			earth->SetTexture(RESOURCE.GetTexture(L"Earth"));
 			_homePlanet = earth;
 			_camera.SetPosition(earth->GetCenterPos());
+
+			_planets.push_back(earth);
 		}
 
 
@@ -236,6 +305,8 @@ void MainWorld::InitPlanet()
 			APlanet* mars = SpawnActor<APlanet>();
 			mars->Setup("Mars", sun->GetCenterPos(), 80000.f, 0.016f, 6.05e6f, 550.f, randomAngle, 0.093f, periAngle);
 			mars->SetTexture(RESOURCE.GetTexture(L"Mars"));
+
+			_planets.push_back(mars);
 		}
 
 		{ // 목성
@@ -244,6 +315,8 @@ void MainWorld::InitPlanet()
 			APlanet* jupiter = SpawnActor<APlanet>();
 			jupiter->Setup("Jupiter", sun->GetCenterPos(), 120000.f, 0.009f, 3.2e8f, 4000.f, randomAngle, 0.048f, periAngle);
 			jupiter->SetTexture(RESOURCE.GetTexture(L"Jupiter"));
+
+			_planets.push_back(jupiter);
 		}
 
 		{ // 토성
@@ -252,6 +325,8 @@ void MainWorld::InitPlanet()
 			APlanet* saturn = SpawnActor<APlanet>();
 			saturn->Setup("Saturn", sun->GetCenterPos(), 160000.f, 0.007f, 2.048e8f, 3200.f, randomAngle, 0.056f, periAngle);
 			saturn->SetTexture(RESOURCE.GetTexture(L"Jupiter"));
+
+			_planets.push_back(saturn);
 		}
 
 		{ // 천왕성
@@ -260,6 +335,8 @@ void MainWorld::InitPlanet()
 			APlanet* uranus = SpawnActor<APlanet>();
 			uranus->Setup("Uranus", sun->GetCenterPos(), 200000.f, 0.005f, 9.68e7f, 2200.f, randomAngle, 0.046f, periAngle);
 			uranus->SetTexture(RESOURCE.GetTexture(L"Uranus"));
+
+			_planets.push_back(uranus);
 		}
 
 		{ // 해왕성
@@ -268,6 +345,8 @@ void MainWorld::InitPlanet()
 			APlanet* neptune = SpawnActor<APlanet>();
 			neptune->Setup("Neptune", sun->GetCenterPos(), 240000.f, 0.004f, 8.0e7f, 2000.f, randomAngle, 0.01f, periAngle);
 			neptune->SetTexture(RESOURCE.GetTexture(L"Neptune"));
+
+			_planets.push_back(neptune);
 		}
 	}
 
@@ -313,6 +392,12 @@ void MainWorld::OnSceneGUI()
 	{
 		if (APlanet* p = dynamic_cast<APlanet*>(_selected))
 			ImGui::Text("선택된 행성: %s", p->GetName().c_str());
+	}
+
+	if (APlanet* mercury = _planets.size() > 1 ? _planets[1] : nullptr)   // 인덱스는 실제 순서에 맞게
+	{
+		float dist = (mercury->GetCenterPos() - _sun->GetCenterPos()).Length();
+		ImGui::Text("수성 현재 거리: %.1f (근일점 예상 15880 / 원일점 예상 24120)", dist);
 	}
 
 	if (_blackHole)

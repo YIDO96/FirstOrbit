@@ -242,6 +242,12 @@
     <ClCompile Include="GameFramework\UI\UIHeadingIndicator.cpp">
       <Filter>02. GameFramework\UI</Filter>
     </ClCompile>
+    <ClCompile Include="GameSystem\InterplanetaryTransfer.cpp">
+      <Filter>10. GameSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSystem\Lambert.cpp">
+      <Filter>10. GameSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\DataManager.h">
@@ -444,6 +450,12 @@
     </ClInclude>
     <ClInclude Include="GameFramework\UI\UIHeadingIndicator.h">
       <Filter>02. GameFramework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSystem\InterplanetaryTransfer.h">
+      <Filter>10. GameSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSystem\Lambert.h">
+      <Filter>10. GameSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

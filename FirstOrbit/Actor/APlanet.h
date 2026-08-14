@@ -17,16 +17,23 @@ public:
 				float initialAngle = 0.0f, float eccentricity = 0.f, float argPeriapsis = 0.f);
 	//void SetTexture(class Texture* texture) { _texture = texture; }
 
+
 	
 	float GetBodyRadius() const { return _bodyRadius; }
 	float GetMu() const { return _mu; }
 	Vector2 GetVelocity() const;
 	Vector2 GetAcceleration() const;
 	Vector2 GetFuturePos(float t) const;   // t초 뒤 위치를 즉시 계산 (닫힌 형태, 오차 없음)
+	Vector2 GetFutureVelocity(float t) const;
 	float GetSOIRadius(float parentMu) const;
+	vector<Vector2> GetOrbitShape(int steps) const;
+
 
 private:
 	Vector2 ComputePositionAtMeanAnomaly(float meanAnomaly) const;
+	Vector2 ComputePositionAtEccentricAnomaly(float E) const;
+	Vector2 ComputeVelocityAtEccentricAnomaly(float E) const;
+
 
 private:
 	Vector2 _orbitCenter;		// 공전 중심점의 월드좌표

@@ -114,3 +114,4 @@ std::string WStringToString(const std::wstring& wstr)
 
 	return strTo;
 }
+

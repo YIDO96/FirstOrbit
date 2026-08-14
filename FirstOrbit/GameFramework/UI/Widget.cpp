@@ -42,6 +42,8 @@ bool Widget::IsMouseOverUI(Vector2 mousePos) const
 {
     for (UIBase* child : _children)
     {
+        if (!child->IsActive()) continue;
+
         if (child->IsHoverInUI(mousePos))
             return true;
     }

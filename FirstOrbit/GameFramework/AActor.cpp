@@ -7,6 +7,7 @@
 #include "GameFramework/World.h"
 #include "GameFramework/Camera.h"
 
+
 AActor::~AActor()
 {
 	for (UActorComponent* c : _components)
@@ -73,4 +74,6 @@ void AActor::OnImGuiDoubleClick()
 {
 	//_ownerWorld->SetCameraPos(GetCenterPos());
 	_ownerWorld->SetCameraOnGUIDoubleClickedEvent(this);
+
+	
 }

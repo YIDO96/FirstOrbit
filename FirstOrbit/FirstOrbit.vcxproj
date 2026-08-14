@@ -190,6 +190,8 @@
     <ClCompile Include="GameMode\LaunchGameMode.cpp" />
     <ClCompile Include="GameMode\OrbitalGameMode.cpp" />
     <ClCompile Include="GameSystem\Glow.cpp" />
+    <ClCompile Include="GameSystem\InterplanetaryTransfer.cpp" />
+    <ClCompile Include="GameSystem\Lambert.cpp" />
     <ClCompile Include="GameSystem\SpaceLightingSystem.cpp" />
     <ClCompile Include="ImGui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -293,6 +295,8 @@
     <ClInclude Include="GameMode\LaunchGameMode.h" />
     <ClInclude Include="GameMode\OrbitalGameMode.h" />
     <ClInclude Include="GameSystem\Glow.h" />
+    <ClInclude Include="GameSystem\InterplanetaryTransfer.h" />
+    <ClInclude Include="GameSystem\Lambert.h" />
     <ClInclude Include="GameSystem\SpaceLightingSystem.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
