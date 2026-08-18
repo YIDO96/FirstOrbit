@@ -17,4 +17,6 @@ protected:
 
 private:
 	class Widget_Title* _titleWidget = nullptr;
+
+	class Sound* _titleSound = nullptr;
 };

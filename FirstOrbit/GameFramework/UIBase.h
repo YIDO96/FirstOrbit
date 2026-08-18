@@ -69,6 +69,10 @@ public:
 	void SetParentAnchor(EParentAnchor parentanchor, UIBase* parent);
 	void SetPivot(EPivot pivot);
 
+	// 이후 생성/Init되는 UIBase가 게임 뷰포트(GWinSizeX 기준) 대신 사이드 패널(GImGuiPanelWidth 기준)
+	// 좌표계를 쓰게 한다. Widget_Main/Widget_Launch의 Init() 맨 앞뒤에서 켜고 끈다.
+	static void SetActiveUISpace(bool usePanelSpace) { s_activeSpaceIsPanel = usePanelSpace; }
+
 	Vector2 GetPos() { return Vector2(_finalX, _finalY); }
 	Vector2 GetSize() { return Vector2(_width, _height); }
 	bool IsActive() const { return _isActive; }
@@ -94,5 +98,11 @@ protected:
 	COLORREF _color = RGB(255, 255, 255);
 	bool _isTransparent = false;
 
+	// SetAnchor() 호출 시점의 s_activeSpaceIsPanel을 그대로 캡처해둔다 (Update()는 한참 뒤에도
+	// 계속 불리니까, 그때도 자기가 어느 좌표계 소속인지 기억하고 있어야 함).
+	bool _usePanelSpace = false;
+
+private:
+	static bool s_activeSpaceIsPanel;
 };
 

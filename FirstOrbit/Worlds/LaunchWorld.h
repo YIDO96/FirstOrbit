@@ -33,4 +33,11 @@ private:
 	static constexpr float kSpaceAltitude = 10000.f;
 
 	class StarField* _stars = nullptr;
+
+	bool _cameraFollowStarted = false;
+
+	bool _isPlayLaunchSound = false;
+
+	class SpaceLightingSystem* _lightingSystem = nullptr;
+	float _lastDeltaTime = 0.f;
 };

@@ -10,6 +10,11 @@ public:
 	bool LoadWave(fs::path fullPath);
 	void Play(bool loop = false);
 	void Stop(bool reset = false);
+	void SetVolumePercent(float percent);
+	
+private:
+	void SetVolume(long volume);
+
 
 private:
 	LPDIRECTSOUNDBUFFER _soundBuffer = nullptr;

@@ -17,9 +17,9 @@ public:
 				float initialAngle = 0.0f, float eccentricity = 0.f, float argPeriapsis = 0.f);
 	//void SetTexture(class Texture* texture) { _texture = texture; }
 
-
 	
 	float GetBodyRadius() const { return _bodyRadius; }
+	float GetOrbitSpeed() const { return _orbitSpeed; }
 	float GetMu() const { return _mu; }
 	Vector2 GetVelocity() const;
 	Vector2 GetAcceleration() const;
@@ -49,4 +49,6 @@ private:
 
 	class UCircleColliderComponent* _circleCollider = nullptr;
 	//class Texture* _texture = nullptr;
+
+	
 };

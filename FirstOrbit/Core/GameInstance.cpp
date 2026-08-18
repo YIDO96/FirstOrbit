@@ -11,6 +11,7 @@
 #include "DataManager.h"
 #include "SoundManager.h"
 #include "UIManager.h"
+#include "ResourceData.h"
 
 #include "Worlds/TitleWorld.h"
 #include "Worlds/LaunchWorld.h"
@@ -27,6 +28,8 @@ GameInstance::~GameInstance()
 	DeleteObject(_bmpBack);
 	DeleteDC(_hdcGame);
 	DeleteObject(_bmpGame);
+	DeleteDC(_hdcPanel);
+	DeleteObject(_bmpPanel);
 }
 
 void GameInstance::RecreateBackBuffer(int width, int height)
@@ -71,24 +74,47 @@ void GameInstance::Init(HWND hwnd)
 	_bmpGame = CreateCompatibleBitmap(_hdc, GWinSizeX, GWinSizeY);
 	SelectObject(_hdcGame, _bmpGame);
 
+	// 사이드 UI 패널 논리 렌더 버퍼: GImGuiPanelWidth x GWinSizeY 고정 크기. 게임 버퍼와 같은 방식(고정
+	// 해상도로 그린 뒤 창 크기에 맞춰 레터박스 합성)으로 처리한다.
+	_hdcPanel = CreateCompatibleDC(_hdc);
+	_bmpPanel = CreateCompatibleBitmap(_hdc, GImGuiPanelWidth, GWinSizeY);
+	SelectObject(_hdcPanel, _bmpPanel);
+
 	_screenCenter = Vector2(_rect.right / 2.f, _rect.bottom / 2.f);
 
 	// TimeManager
 	TimeManager::GetInstance().Init();
 	InputManager::GetInstance().Init(hwnd);
 
+
+	
+
 	// 리소스 매니저 초기화
 	wchar_t buffer[MAX_PATH];
 	DWORD length = ::GetCurrentDirectory(MAX_PATH, buffer);
 	fs::path currentPath = fs::path(buffer) / L"../Resources/";
-	ResourceManager::GetInstance().Init(hwnd, currentPath);
+
+	
+
 
 	// SoundManager 초기화 (ResourceManager가 사운드를 로드할 때 디바이스가 이미 있어야 한다)
-	SoundManager::GetInstance().Init(hwnd);
+	SOUND.Init(hwnd);
+	RESOURCE.Init(hwnd, currentPath);
 
 	// DataManager 초기화
-	DataManager::GetInstance().Init(currentPath);
-	DataManager::GetInstance().Load();
+	DATA.Init(currentPath);
+	DATA.Load();
+
+	// 리소스 로드 초기화 함수 위치 (예: Client/App 초기화 구문)
+	ResourceData* resourceData = DATA.FindData<ResourceData>(L"ResourceData");
+	if (resourceData)
+	{
+		const auto& soundSection = resourceData->GetSoundSection();
+		for (const auto& [key, item] : soundSection)
+		{
+			RESOURCE.LoadSound(item.key, item.fileName);
+		}
+	}
 
 	RegisterWorld();
 
@@ -172,9 +198,6 @@ void GameInstance::Render()
 	PatBlt(_hdcGame, 0, 0, GWinSizeX, GWinSizeY, BLACKNESS);
 	WORLD.Render(_hdcGame);
 
-	// 인게임 UI(HP 등)는 액터 렌더링 다음, 레터박스 스케일링 전에 같은 버퍼에 이어서 그린다.
-	UIManager::GetInstance().Render(_hdcGame);
-
 	// 창 크기에 맞춰 비율을 유지하며 확대/축소(레터박스)해서 백버퍼에 합성한다.
 	// 좌상단에 고정하므로, 창이 게임 비율보다 넓거나 높으면 남는 공간이 오른쪽/아래로 생기고
 	// 그 자리가 자연스럽게 ImGui 패널 도킹 공간이 된다.
@@ -201,6 +224,25 @@ void GameInstance::Render()
 		::StretchBlt(_hdcBack, 0, 0, destW, destH, _hdcGame, 0, 0, GWinSizeX, GWinSizeY, SRCCOPY);
 	}
 
+	// 사이드 UI 패널: ImGui가 Debug 빌드에서 쓰던 오른쪽 공간에, Release에서도 항상 우리 UI를 그린다.
+	// 게임 버퍼와 똑같이 고정 해상도(GImGuiPanelWidth x GWinSizeY)로 그린 뒤 레터박스 합성한다.
+	// 배경은 검정(BLACKNESS)이 아니라 짙은 회색으로 채워서, 우주 배경(검정)인 게임 뷰포트와 경계가 보이게 한다.
+	static HBRUSH panelBgBrush = CreateSolidBrush(RGB(30, 30, 34));
+	RECT panelBufRect = { 0, 0, GImGuiPanelWidth, GWinSizeY };
+	FillRect(_hdcPanel, &panelBufRect, panelBgBrush);
+	UIManager::GetInstance().Render(_hdcPanel);
+
+	int panelDestW = _panelViewport.right - _panelViewport.left;
+	int panelDestH = _panelViewport.bottom - _panelViewport.top;
+	if (panelDestW > 0 && panelDestH > 0)
+	{
+		if (panelDestW == GImGuiPanelWidth && panelDestH == GWinSizeY)
+			::BitBlt(_hdcBack, _panelViewport.left, _panelViewport.top, panelDestW, panelDestH, _hdcPanel, 0, 0, SRCCOPY);
+		else
+			::StretchBlt(_hdcBack, _panelViewport.left, _panelViewport.top, panelDestW, panelDestH, _hdcPanel, 0, 0, GImGuiPanelWidth, GWinSizeY, SRCCOPY);
+	}
+
+#ifdef _DEBUG
 	// 이번 프레임에 등록된 ImGui 창 배경들을 ImGui 소프트웨어 래스터라이저 대신 GDI로 빠르게 채운다.
 	if (!_uiBackgroundRects.empty())
 	{
@@ -214,6 +256,7 @@ void GameInstance::Render()
 	ImDrawData* draw_data = ImGui::GetDrawData();
 	if (draw_data)
 		ImGui_ImplGDI_RenderDrawData(draw_data, _backPixels, _rect.right, _rect.bottom);
+#endif
 
 	// 모든 렌더링이 끝난 백버퍼를 화면에 전달
 	BitBlt(_hdc, 0, 0, _rect.right, _rect.bottom, _hdcBack, 0, 0, SRCCOPY);
@@ -243,4 +286,13 @@ void GameInstance::UpdateGameViewport()
 
 	_gameViewport = { 0, 0, destW, destH };
 	_rectRatio = (float)(_gameViewport.right - _gameViewport.left) / GWinSizeX;
+
+	// 게임 뷰포트 바로 오른쪽부터 창 끝까지 남는 공간에 패널을 채운다. 게임 화면과 달리 UI라
+	// 비율 유지가 중요하지 않으므로, 비율 유지(min) 대신 남는 공간을 가로/세로 각각 꽉 채운다
+	// (안 그러면 옆에 허옇게 빈 여백이 남아서 패널이 잘린 것처럼 보임).
+	int panelDestW = max(_rect.right - destW, 0);
+	int panelDestH = destH;
+
+	_panelViewport = { destW, 0, destW + panelDestW, panelDestH };
+	_panelRectRatio = Vector2(panelDestW / (float)GImGuiPanelWidth, panelDestH / (float)GWinSizeY);
 }

@@ -120,19 +120,25 @@ Vector2 UPhysicsComponent::ComputeAcceleration(const Vector2& pos, const Vector2
 
 	// 블랙홀: SOI 시스템과 무관하게 항상 당김 (멀면 1/r²로 자연히 무시할 수준)
 	World* world = GetOwner()->GetOwnerWorld();
-	for (int32 i = 0; i < world->GetActorCount(); ++i)
+
+	if (not ship or not ship->IsForceHeliocentric())
 	{
-		AActor* actor = world->GetActor(i);
-		if (actor->GetType() != EActorType::BlackHole) continue;
+		for (int32 i = 0; i < world->GetActorCount(); ++i)
+		{
+			AActor* actor = world->GetActor(i);
+			if (actor->GetType() != EActorType::BlackHole) continue;
 
-		ABlackHole* hole = static_cast<ABlackHole*>(actor);
-		Vector2 dir = hole->GetCenterPos() - pos;
-		float r2 = dir.LengthSquared();
-		float r = max(sqrtf(r2), hole->GetEventHorizonRadius());
-		r2 = r * r;
+			ABlackHole* hole = static_cast<ABlackHole*>(actor);
+			Vector2 dir = hole->GetCenterPos() - pos;
+			float r2 = dir.LengthSquared();
+			float r = max(sqrtf(r2), hole->GetEventHorizonRadius());
+			r2 = r * r;
 
-		a += dir * (hole->GetMu() / (r2 * r));
+			a += dir * (hole->GetMu() / (r2 * r));
+		}
 	}
+
+	
 
 	// 5. 우주선 엔진 추진력(Thrust)에 의한 가속도 계산 (F = ma -> a = F / m)
 	if (ship != nullptr and ship->GetIsThrusting())

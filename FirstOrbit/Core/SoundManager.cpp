@@ -41,3 +41,21 @@ void SoundManager::Play(const wstring& key, bool loop /*= false*/)
 
 	sound->Play(loop);
 }
+
+void SoundManager::Stop(const wstring& key, bool reset)
+{
+	Sound* sound = ResourceManager::GetInstance().GetSound(key);
+	if (sound == nullptr)
+		return;
+
+	sound->Stop(reset);
+}
+
+void SoundManager::SetVolume(const wstring& key, float percent)
+{
+	Sound* sound = ResourceManager::GetInstance().GetSound(key);
+	if (sound == nullptr)
+		return;
+
+	sound->SetVolumePercent(percent);
+}

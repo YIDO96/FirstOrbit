@@ -10,6 +10,27 @@ static float ComputeHohmannTOF(float r1, float r2, float mu)
 	return 3.14159265f * sqrtf(a_t * a_t * a_t / mu);
 }
 
+float ComputePhaseAngleError(Vector2 shipPos, APlanet* target, float sunMu)
+{
+	float r1 = shipPos.Length();
+	Vector2 targetPos = target->GetCenterPos();
+	float r2 = targetPos.Length();
+
+	float hohmannTOF = ComputeHohmannTOF(r1, r2, sunMu);
+	float idealLead = 3.14159265f - target->GetOrbitSpeed() * hohmannTOF;
+	idealLead = fmodf(idealLead, 6.283185307f);
+	if (idealLead < 0.f)idealLead += 6.283185307f;
+
+	float cosAngle = clamp(shipPos.Dot(targetPos) / (r1 * r2), -1.f, 1.f);
+	float currentAngle = acosf(cosAngle);
+	if (shipPos.Cross(targetPos) < 0.f) currentAngle = 6.283185307f - currentAngle;
+
+	float diff = fabsf(currentAngle - idealLead);
+	if (diff > 3.14159265f) diff = 6.283185307f - diff;
+
+	return diff * (180.f / 3.14159265f);
+}
+
 static TransferPlan ScanTOFRange(Vector2 shipPos, Vector2 shipVel, APlanet* target, float sunMu,
 	float tofMin, float tofMax, int sampleCount)
 {
@@ -22,6 +43,7 @@ static TransferPlan ScanTOFRange(Vector2 shipPos, Vector2 shipVel, APlanet* targ
 
 		Vector2 r2 = target->GetFuturePos(tof);
 		LambertResult lam = SolveLambert(shipPos, r2, tof, sunMu);
+		best.transferAngle = lam.transferAngle;
 		if (not lam.valid) continue;
 
 		Vector2 targetVelAtArrival = target->GetFutureVelocity(tof);

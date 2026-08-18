@@ -28,7 +28,7 @@ bool SpaceLightingSystem::Initialize(HDC hdc, int width, int height)
 	_sunGlow->Create(256, RGB(255, 210, 120));
 
 	_engineGlow = new Glow();
-	_engineGlow->Create(128, RGB(80, 180, 255));
+	_engineGlow->Create(128, RGB(255, 140, 40));
 
 	_accretionGlow = new Glow();
 	//_accretionGlow->Create(256, RGB(255, 120, 30));
@@ -208,6 +208,9 @@ void SpaceLightingSystem::UpdateAndRenderParticle(float deltaTime)
 			it = _particles.erase(it);
 			continue;
 		}
+		
+		it->pos += it->velocity * deltaTime;
+
 
 		// 위치 이동 및 크기 확장
 		float lifeRatio = it->currentLife / it->maxLife;

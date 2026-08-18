@@ -105,7 +105,7 @@ void Camera::UpdateDrag()
 void Camera::UpdateFollow(float deltaTime)
 {
 	if (_followTarget)
-		_targetPosition = _followTarget->GetCenterPos();
+		_targetPosition = _followTarget->GetCenterPos() + _followOffset;
 	else
 		_targetPosition = _position;
 

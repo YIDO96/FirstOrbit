@@ -4,6 +4,8 @@
 #include "Core/GameInstance.h"
 #include "GameFramework/Texture.h"
 
+bool UIBase::s_activeSpaceIsPanel = false;
+
 void UIBase::RecalculateFinalPos()
 {
 	_finalX = _x - (_width * _pivotRatioX);
@@ -17,8 +19,20 @@ bool UIBase::IsHoverInUI(Vector2 mousePos)
 	Vector2 pos = GetPos();   // 또는 texture->GetFinalPos()
 	Vector2 size = GetSize();
 
-	// mousePos는 윈도우 픽셀 좌표, UI는 논리 해상도(GWinSizeX x GWinSizeY) 기준이라 비율 보정 필요
-	Vector2 scaledMouse = mousePos / GAME.GetRectRatio();
+	// mousePos는 윈도우 픽셀 좌표, UI는 논리 해상도 기준이라 비율 보정 필요.
+	// 패널 소속이면 패널 뷰포트 오프셋을 뺀 뒤 패널 자체 비율로, 아니면 게임 뷰포트 비율로 보정한다.
+	Vector2 scaledMouse;
+	if (_usePanelSpace)
+	{
+		RECT panelRect = GAME.GetPanelViewportRect();
+		Vector2 local = mousePos - Vector2((float)panelRect.left, (float)panelRect.top);
+		Vector2 ratio = GAME.GetPanelRectRatio();   // x/y 스케일이 다를 수 있어서 각각 나눔
+		scaledMouse = Vector2(local.x / ratio.x, local.y / ratio.y);
+	}
+	else
+	{
+		scaledMouse = mousePos / GAME.GetRectRatio();
+	}
 
 	// Rect 범위 안에 마우스 좌표가 들어왔는지 검사
 	bool isInsideX = (scaledMouse.x >= pos.x && scaledMouse.x <= pos.x + size.x);
@@ -45,19 +59,24 @@ void UIBase::SetSize(float w, float h)
 void UIBase::SetAnchor(EAnchor anchor)
 {
 	_anchor = anchor;
+	_usePanelSpace = s_activeSpaceIsPanel;
+
+	// 패널 소속이면 GWinSizeX(게임 뷰포트 폭) 대신 GImGuiPanelWidth(패널 폭)를 기준으로 앵커를 잡는다.
+	float refW = _usePanelSpace ? (float)GImGuiPanelWidth : (float)GWinSizeX;
+	float refH = (float)GWinSizeY;   // 패널도 세로는 게임 버퍼와 같은 GWinSizeY를 쓴다
 
 	switch (_anchor)
 	{
-	case EAnchor::LeftTop:		_anchorX = 0;				_anchorY = 0;				break;
-	case EAnchor::Top:			_anchorX = GWinSizeX / 2;	_anchorY = 0;				break;
-	case EAnchor::RightTop:		_anchorX = GWinSizeX;		_anchorY = 0;				break;
-	case EAnchor::Left:			_anchorX = 0;				_anchorY = GWinSizeY / 2;	break;
-	case EAnchor::Center:		_anchorX = GWinSizeX / 2;	_anchorY = GWinSizeY / 2;	break;
-	case EAnchor::Right:		_anchorX = GWinSizeX;		_anchorY = GWinSizeY / 2;	break;
-	case EAnchor::LeftBottom:	_anchorX = 0;				_anchorY = GWinSizeY;		break;
-	case EAnchor::Bottom:		_anchorX = GWinSizeX / 2;	_anchorY = GWinSizeY;		break;
-	case EAnchor::RightBottom:	_anchorX = GWinSizeX;		_anchorY = GWinSizeY;		break;
-	default:																			break;
+	case EAnchor::LeftTop:		_anchorX = 0;			_anchorY = 0;			break;
+	case EAnchor::Top:			_anchorX = refW / 2;	_anchorY = 0;			break;
+	case EAnchor::RightTop:		_anchorX = refW;		_anchorY = 0;			break;
+	case EAnchor::Left:			_anchorX = 0;			_anchorY = refH / 2;	break;
+	case EAnchor::Center:		_anchorX = refW / 2;	_anchorY = refH / 2;	break;
+	case EAnchor::Right:		_anchorX = refW;		_anchorY = refH / 2;	break;
+	case EAnchor::LeftBottom:	_anchorX = 0;			_anchorY = refH;		break;
+	case EAnchor::Bottom:		_anchorX = refW / 2;	_anchorY = refH;		break;
+	case EAnchor::RightBottom:	_anchorX = refW;		_anchorY = refH;		break;
+	default:																	break;
 	}
 }
 

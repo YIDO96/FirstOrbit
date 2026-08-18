@@ -92,3 +92,33 @@ void Sound::Stop(bool reset)
 	if (reset)
 		_soundBuffer->SetCurrentPosition(0);
 }
+
+void Sound::SetVolumePercent(float percent)
+{
+	if (!_soundBuffer) return;
+
+	if (percent <= 0.0f)
+	{
+		_soundBuffer->SetVolume(DSBVOLUME_MIN);
+		return;
+	}
+
+	// 로그 스케일 변환 (인간의 청각 특성에 맞는 자연스러운 볼륨 조절)
+	long volume = static_cast<long>(2000.0f * log10f(percent));
+
+	if (volume > DSBVOLUME_MAX) volume = DSBVOLUME_MAX;
+	if (volume < DSBVOLUME_MIN) volume = DSBVOLUME_MIN;
+
+	_soundBuffer->SetVolume(volume);
+}
+
+void Sound::SetVolume(long volume)
+{
+	if (!_soundBuffer) return;
+
+	// 범위 제한 (0 ~ -10000)
+	if (volume > DSBVOLUME_MAX) volume = DSBVOLUME_MAX;
+	if (volume < DSBVOLUME_MIN) volume = DSBVOLUME_MIN;
+
+	_soundBuffer->SetVolume(volume);
+}

@@ -11,6 +11,8 @@ class SoundManager : public Singleton<SoundManager>
 public:
 	void Init(HWND hwnd);
 	void Play(const wstring& key, bool loop = false);
+	void Stop(const wstring& key, bool reset = true);
+	void SetVolume(const wstring& key, float percent);
 
 	LPDIRECTSOUND GetSoundDevice() { return _soundDevice; }
 

@@ -43,6 +43,19 @@ void UIButton::Update(float deltaTime)
 {
     if (!_isActive) return;
 
+    // 비활성(흐림) 상태면 호버 확대/클릭 반응 없이 그대로 원래 크기로 고정.
+    if (!_isInteractable)
+    {
+        SetSize(_originSize.x, _originSize.y);
+        if (_text)
+        {
+            _text->SetFontSize(_originFontSize);
+            _text->InitButton(_textAnchor, _textPivot, Vector2(_textPos.x, _textPos.y - 5), _textSize);
+            _text->Update(deltaTime);
+        }
+        return;
+    }
+
     // 마우스 좌표 확인 (WinAPI GetCursorPos + ScreenToClient 등 활용)
     //POINT mousePos;
     //::GetCursorPos(&mousePos);
@@ -94,5 +107,29 @@ void UIButton::Render(HDC hdc)
     if (_text)
     {
         _text->Render(hdc);
+    }
+
+    if (!_isInteractable)
+    {
+        // 비활성 상태: 버튼 위에 반투명 검정을 덮어서 흐리게 보이게 한다.
+        // (SourceConstantAlpha만 쓰고 AlphaFormat은 0으로 둬서, 원본 픽셀의 알파는 무시하고
+        //  1x1 불투명 검정을 균일한 비율로 얹는 방식 — Glow.cpp의 AC_SRC_ALPHA 방식과 다름)
+        static HDC dimHdc = nullptr;
+        static HBITMAP dimBmp = nullptr;
+        if (!dimHdc)
+        {
+            dimHdc = CreateCompatibleDC(hdc);
+            dimBmp = CreateCompatibleBitmap(hdc, 1, 1);
+            SelectObject(dimHdc, dimBmp);
+            SetPixel(dimHdc, 0, 0, RGB(0, 0, 0));
+        }
+
+        BLENDFUNCTION bf = { 0 };
+        bf.BlendOp = AC_SRC_OVER;
+        bf.BlendFlags = 0;
+        bf.SourceConstantAlpha = 150;   // 0~255, 클수록 더 어둡게 덮임
+        bf.AlphaFormat = 0;
+
+        AlphaBlend(hdc, (int)_finalX, (int)_finalY, (int)_width, (int)_height, dimHdc, 0, 0, 1, 1, bf);
     }
 }

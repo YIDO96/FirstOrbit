@@ -29,6 +29,7 @@ public:
 	void SetIsControll(bool controll) { _isControll = controll; }
 	void SetFollowTarget(class AActor* target) { _followTarget = target; }
 	void SetTargetPosition(Vector2 pos) { _targetPosition = pos; }
+	void SetFollowOffset(Vector2 offset) { _followOffset = offset; }
 
 
 	Vector2 GetPosition() const { return _position; }
@@ -65,6 +66,7 @@ private:
 	class AActor* _followTarget = nullptr;
 	Vector2 _targetPosition;
 	float _followK = 5.f;
+	Vector2 _followOffset = Vector2();
 
 	// Zoom
 	float _zoom = 1.f;

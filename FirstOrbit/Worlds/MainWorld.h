@@ -23,6 +23,14 @@ public:
 
 	void InitPlanet();
 	void UpdateUIData();
+	vector<class APlanet*> GetReachablePlanets() const;   // 삥 도는 전이만 나오는 행성은 제외
+
+	// 뷰포트 클릭이든(PickActor), 액터 버튼 클릭이든 전부 여기로 모여서 같은 로직을 탄다.
+	// 우주선을 픽하면 "목적지 선택 모드"로 들어가고, 그 상태에서 행성을 고르면 전이가 시작된다.
+	void SelectActor(AActor* actor);
+	void StartTransfer(class APlanet* target);
+	// 빈 공간 클릭 등으로 선택/픽 상태를 전부 해제한다 (버튼도 다시 전부 활성으로 되돌림).
+	void DeselectActor();
 
 protected:
 	virtual void OnSceneGUI() override;
@@ -54,4 +62,8 @@ private:
 
 	class APlanet* _transferTarget = nullptr;
 	bool _transferCaptured = false;
+	float _transferAngleDeg = 0.f;
+	float _transferApoapsis = 0.f;
+
+	float _lastDeltaTime = 0.f;
 };

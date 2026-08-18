@@ -19,35 +19,57 @@ void Widget_Launch::Init()
 {
 	Super::Init();
 
+	// 이 위젯의 자식들은 전부 오른쪽 사이드 패널(GImGuiPanelWidth 기준) 좌표계에 그려진다.
+	UIBase::SetActiveUISpace(true);
+
+	// 스케치 레이아웃: 타이틀 → 상태 텍스트 → 점수/콤보(자리만) → Fire 버튼 → 연료바
+	_titleText = AddChild<UIText>();
+	_titleText->Init(EAnchor::Top, EPivot::Top, Vector2(0.f, 15.f), Vector2(0, 0), L"First Orbit");
+	_titleText->SetFontSize(28.f);
+
 	_launchStateText = AddChild<UIText>();
-	_launchStateText->Init(EAnchor::Top, EPivot::Center, Vector2(0, 150), Vector2(0, 0), L"Awaiting Launch");
-	_launchStateText->SetFontSize(40.f);
+	_launchStateText->Init(EAnchor::Top, EPivot::Top, Vector2(0.f, 55.f), Vector2(0, 0), L"Awaiting Launch");
+	_launchStateText->SetFontSize(20.f);
 
 	_altitudeText = AddChild<UIText>();
-	_altitudeText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(0, 10), Vector2(0, 0), L"Altitude : 0");
-	_altitudeText->SetFontSize(30.f);
+	_altitudeText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(20.f, 100.f), Vector2(0, 0), L"Altitude : 0");
+	_altitudeText->SetFontSize(16.f);
 
 	_horizontalVelocityText = AddChild<UIText>();
-	_horizontalVelocityText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(0, 40), Vector2(0, 0), L"HorizontalVelocity : 0");
-	_horizontalVelocityText->SetFontSize(30.f);
+	_horizontalVelocityText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(20.f, 125.f), Vector2(0, 0), L"HorizontalVelocity : 0");
+	_horizontalVelocityText->SetFontSize(16.f);
+
+	// TODO: 점수/콤보 시스템 자체는 아직 미확정(브레인스토밍 중) — 자리만 잡아둔 텍스트, 실제 값 연결은 나중에.
+	_scoreText = AddChild<UIText>();
+	_scoreText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(20.f, 160.f), Vector2(0, 0), L"점수 : 0");
+	_scoreText->SetFontSize(16.f);
+
+	_comboText = AddChild<UIText>();
+	_comboText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(20.f, 185.f), Vector2(0, 0), L"콤보 : 0");
+	_comboText->SetFontSize(16.f);
+
+	// TODO(스케치의 보라색 버튼 3개): 어떤 파워업/보너스가 될지 아직 결정 안 됨 — 기능 없는 빈 버튼을
+	// 미리 만들어두면 죽은 코드가 되니, 실제 기획이 정해지면 그때 여기에 추가할 것.
 
 	Texture* buttonTex = RESOURCE.GetTexture(L"ButtonBG");
 
-	_FireButton = AddChild<UIButton>();
-	_FireButton->SetTexture(buttonTex);
-	Vector2 FireButtonSize = buttonTex->GetTextureSize() * 1.5f;
-	_FireButton->Init(EAnchor::Center, EPivot::Center, Vector2(0, 0), FireButtonSize);
-	_FireButton->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 0), FireButtonSize, L"Fire");
-	_FireButton->SetOnClick([this]()
-		{
-			LaunchGameMode* gm = _ownerWorld->GetGameMode<LaunchGameMode>();
-			gm->ChangeLaunchState(ELaunchState::Countdown);
-			_FireButton->SetActive(false);
-		});
+	//_FireButton = AddChild<UIButton>();
+	//_FireButton->SetTexture(buttonTex);
+	//Vector2 FireButtonSize = buttonTex->GetTextureSize() * 1.5f;
+	//_FireButton->Init(EAnchor::Center, EPivot::Center, Vector2(0, 0), FireButtonSize);
+	//_FireButton->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 0), FireButtonSize, L"Fire");
+	//_FireButton->SetOnClick([this]()
+	//	{
+	//		LaunchGameMode* gm = _ownerWorld->GetGameMode<LaunchGameMode>();
+	//		gm->ChangeLaunchState(ELaunchState::Countdown);
+	//		_FireButton->SetActive(false);
+	//	});
 
 
 	_fuelSlider = AddChild<UISlider>();
 	_fuelSlider->Init(EAnchor::LeftBottom, EPivot::LeftBottom, Vector2(20.f, -20.f), Vector2(150.f, 20.f));
+
+	UIBase::SetActiveUISpace(false);   // 원상 복구 (다음에 만들어질 다른 UI가 영향받지 않도록)
 }
 
 void Widget_Launch::Update(float deltaTime)
@@ -97,7 +119,7 @@ void Widget_Launch::ReSizeStateText()
 
 void Widget_Launch::ResetWidget()
 {
-	_FireButton->SetActive(true);
+	//_FireButton->SetActive(true); 
 }
 
 void Widget_Launch::BindShip(ASpaceship* ship)

@@ -5,6 +5,7 @@
 #include "Core/InputManager.h"
 #include "Core/WorldManager.h"
 #include "Core/UIManager.h"
+#include "Core/SoundManager.h"
 
 #include "Actor/ASpaceship.h"
 #include "Actor/StarField.h"
@@ -12,6 +13,8 @@
 #include "GameFramework/GameMode.h"
 #include "GameFramework/Components/UPhysicsComponent.h"
 #include "GameMode/LaunchGameMode.h"
+
+#include "GameSystem/SpaceLightingSystem.h"
 
 #include "Widget/Widget_Launch.h"
 
@@ -29,6 +32,7 @@ void LaunchWorld::Enter()
 	GetGameMode<LaunchGameMode>()->SetShip(_ship);
 
 	_camera.SetPosition(_ship->GetCenterPos() + Vector2(0, -100.f));
+	//_camera.SetFollowTarget(_ship);
 
 	_launchWidget = UI.CreateWidget<Widget_Launch>();
 	_launchWidget->SetOwnerWorld(this);
@@ -36,30 +40,53 @@ void LaunchWorld::Enter()
 
 	_stars = new StarField();
 	_stars->Init(3000, 6000.f);
+
+	_lightingSystem = new SpaceLightingSystem();
+	HDC hdc = ::GetDC(GAME.GetHwnd());
+	_lightingSystem->Initialize(hdc, GWinSizeX, GWinSizeY);
+	::ReleaseDC(GAME.GetHwnd(), hdc);
 }
 void LaunchWorld::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
+	_lastDeltaTime = deltaTime;
 
+	if (not _cameraFollowStarted)
+	{
+		Vector2 shipScreenPos = _camera.WorldToScreen(_ship->GetCenterPos());
+		if (shipScreenPos.y <= GWinSizeY / 3.f)   // 화면상 1/3 지점에 도달
+		{
+			_cameraFollowStarted = true;
+			_camera.SetFollowTarget(_ship);
+		}
+	}
+	else
+	{
+		float offsetY = GWinSizeY / 6.f / _camera.GetZoom();
+		_camera.SetFollowOffset(Vector2(0.f, offsetY));
+	}
 	
 
 	LaunchGameMode* launchGameMode = GetGameMode<LaunchGameMode>();
-	//if (launchGameMode->GetLaunchState() == ELaunchState::Idle and
-	//	_INPUT.GetButtonDown(KeyType::SpaceBar))
-	//{
-	//	launchGameMode->ChangeLaunchState(ELaunchState::Countdown);
-	//}
 
 	if (launchGameMode->GetLaunchState() == ELaunchState::Ascent)
 	{
-		_altitude = -_ship->GetCenterPos().y;   // 위가 -y
-		if (_altitude > 5000.f)
+		if (not _isPlayLaunchSound)
 		{
+			SOUND.Play(L"S_SpaceshipLaunch");
+			_isPlayLaunchSound = true;
+		}
+
+		_altitude = -_ship->GetCenterPos().y;   // 위가 -y
+		if (_altitude > 2000.f)
+		{
+			SOUND.Stop(L"S_SpaceshipLaunch");
 			LaunchHandoff handoff;
-			handoff.position = ((_ship->GetCenterPos()* 0.2f) - Vector2(0, 0)).Normalized() * 1000.f;
+			handoff.position = ((_ship->GetCenterPos()* 0.5f) - Vector2(0, 0)).Normalized() * 1000.f;
 			//handoff.position = _ship->GetCenterPos();
 			handoff.velocity = _ship->GetComponent<UPhysicsComponent>()->GetVelocity();
 			handoff.degree = _ship->GetDegree();
+			handoff.autoOrbit = _ship->IsAutoPilot();
 			GAME.SetLaunchHandoff(handoff);
 
 			WORLD.ChangeWorld("MainWorld");
@@ -67,6 +94,7 @@ void LaunchWorld::Update(float deltaTime)
 
 		float density = expf(-_altitude / GAtmosphereScaleHeight);
 		_camera.SetZoom(.3f + (2.f - .3f) * density);
+
 	}
 
 	
@@ -76,12 +104,21 @@ void LaunchWorld::Update(float deltaTime)
 		_ship->SetCenterPos(Vector2(0.f, -10.f));   // 발사대 위치는 여전히 LaunchWorld 책임
 		_camera.SetPosition(_ship->GetCenterPos() + Vector2(0, -100.f));
 		_camera.SetZoomImmediate(2.f);
+		_cameraFollowStarted = false;
+		_camera.SetFollowTarget(nullptr);
 
 		_launchWidget->ResetWidget();
 	}
 
 	if (_INPUT.GetButtonDown(KeyType::P))
 		WORLD.ChangeWorld("MainWorld");
+
+	if (launchGameMode->GetLaunchState() == ELaunchState::Idle and _INPUT.GetButtonDown(KeyType::Enter))
+	{
+		_ship->SetAutoPilot(true);
+		SOUND.Play(L"S_Countdown");
+		launchGameMode->ChangeLaunchState(ELaunchState::Countdown);
+	}
 
 	
 
@@ -107,6 +144,24 @@ void LaunchWorld::Render(HDC hdc)
 	_stars->Render(hdc, _camera, 1.f - density);
 
 	Super::Render(hdc);
+
+	//_lightingSystem->BeginRender(_camera);
+	::BitBlt(_lightingSystem->GetBufferDC(), 0, 0, GWinSizeX, GWinSizeY, hdc, 0, 0, SRCCOPY);
+	
+	float sunT = 1.f - density;   // 0: 지상(하늘 밝아서 안 보임) ~ 1: 우주(하늘 검어서 또렷)
+	Vector2 sunPos(GWinSizeX * 0.8f, GWinSizeY * 0.15f);   // 화면 우상단
+	float sunRadius = 40.f + (90.f - 40.f) * sunT;
+	BYTE sunIntensity = (BYTE)(100.f + (255.f - 100.f) * sunT);
+	_lightingSystem->RenderSunGlow(sunPos, sunRadius, sunIntensity);
+
+	if (_ship->GetIsThrusting())
+	{
+		Vector2 enginePos = _ship->GetCenterPos() - _ship->GetForwardDir() * 12.f;   // 선체 뒤쪽(엔진 위치)
+		_lightingSystem->SpawnEngineParticle(_camera.WorldToScreen(enginePos), -_ship->GetForwardDir());
+	}
+	_lightingSystem->UpdateAndRenderParticle(_lastDeltaTime);
+
+	_lightingSystem->EndRender(hdc);
 
 	// 바닥선 (월드 y=0, 좌우로 길게)
 	Vector2 left = _camera.WorldToScreen(Vector2(-5000.f, 0.f));

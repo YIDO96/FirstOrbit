@@ -7,6 +7,7 @@ struct LaunchHandoff
 	Vector2 position;
 	Vector2 velocity;
 	float degree = 0.f;
+	bool autoOrbit = false;
 };
 
 
@@ -34,6 +35,12 @@ public:
 	// 레터박스된 게임 화면이 실제로 그려지는 창 좌표 (마우스 좌표를 게임 좌표로 변환할 때 사용)
 	RECT GetGameViewportRect() const { return _gameViewport; }
 	float GetRectRatio() const { return _rectRatio; }
+
+	// 게임 뷰포트 오른쪽에 붙는 사이드 UI 패널이 실제로 그려지는 창 좌표
+	RECT GetPanelViewportRect() const { return _panelViewport; }
+	// 패널은 게임 화면과 달리 비율 유지가 중요하지 않은 UI라, 남는 공간을 꽉 채우도록 가로/세로를
+	// 따로 늘린다 (x/y 스케일이 다를 수 있어서 Vector2로 반환).
+	Vector2 GetPanelRectRatio() const { return _panelRectRatio; }
 
 	// 자유롭게 움직이는(도킹 가능한) ImGui 창이 자기 배경을 NoBackground로 끄는 대신,
 	// Begin() 직후 자신의 현재 위치/크기를 등록해두면 GDI FillRect로 훨씬 빠르게 채워준다.
@@ -74,9 +81,18 @@ private:
 	HDC _hdcGame = nullptr;
 	HBITMAP _bmpGame = nullptr;
 
+	// 사이드 UI 패널 논리 렌더 버퍼: GImGuiPanelWidth x GWinSizeY 고정 크기. ImGui가 쓰던 오른쪽 패널
+	// 자리를, Release에서 사라진 ImGui 대신 우리 UI(Widget_Main/Widget_Launch)가 대신 그린다.
+	HDC _hdcPanel = nullptr;
+	HBITMAP _bmpPanel = nullptr;
+
 	// 레터박스된 게임 화면이 그려지는 창 좌표 (좌상단 고정, 비율 유지 확대/축소)
 	RECT _gameViewport = {};
 	float _rectRatio = 1.f;
+
+	// 게임 뷰포트 바로 오른쪽부터 창 끝까지, 사이드 패널이 그려지는 창 좌표
+	RECT _panelViewport = {};
+	Vector2 _panelRectRatio = Vector2(1.f, 1.f);
 
 	// 이번 프레임에 등록된 UI 배경 사각형들 (Render()에서 GDI로 채운 뒤 비운다)
 	vector<RECT> _uiBackgroundRects;

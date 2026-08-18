@@ -194,9 +194,8 @@ void World::Render(HDC hdc)
     {
         //RenderDebugGrid(hdc);
     }
-
-
-    UI.Render(hdc);
+    // UI 렌더링은 이제 GameInstance::Render()가 사이드 패널 버퍼(_hdcPanel)에 직접 그린다.
+    // (예전엔 여기서 게임 버퍼(hdc=_hdcGame)에 이어 그렸었음)
 }
 
 void World::RenderDebugGrid(HDC hdc)

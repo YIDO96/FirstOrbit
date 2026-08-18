@@ -6,6 +6,7 @@
 #include "Core/ResourceManager.h"
 #include "Core/GameInstance.h"
 #include "Core/UIManager.h"
+#include "Core/SoundManager.h"
 
 #include "GameFramework/Texture.h"
 #include "GameFramework/Components/UPhysicsComponent.h"
@@ -34,7 +35,8 @@ void MainWorld::Enter()
 	
 	_camera.SetIsControll(true);
 	
-
+	SOUND.Play(L"S_Space", true);
+	SOUND.SetVolume(L"S_Space", 0.1f);
 
 	InitPlanet();
 
@@ -50,6 +52,21 @@ void MainWorld::Enter()
 		_ship->SetCenterPos(_homePlanet->GetCenterPos() + handoff.position);
 		_ship->SetRotation(handoff.degree);
 		_ship->GetComponent<UPhysicsComponent>()->SetVelocity(handoff.velocity + _homePlanet->GetVelocity());
+
+
+		if (handoff.autoOrbit)
+		{
+			UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+			Vector2 center = _homePlanet->GetCenterPos();
+			float r = 1200.f;   // 고도 300 — KEY_0이랑 동일한 값
+			float speed = sqrtf(_homePlanet->GetMu() / r);
+
+			Vector2 dir(0.f, -1.f);
+			Vector2 perp(-dir.y, dir.x);
+
+			_ship->SetCenterPos(center + dir * r);
+			physics->SetVelocity(perp * speed + _homePlanet->GetVelocity());
+		}
 	}
 	else
 	{
@@ -76,43 +93,56 @@ void MainWorld::Enter()
 	_widget = UI.CreateWidget<Widget_Main>();
 	_widget->SetOwnerWorld(this);
 	_widget->BindShip(_ship);
-	_widget->SetOnPlanetSelected([this](APlanet* target)
+
+	// 우주선 + 태양계(태양 포함) + 블랙홀, 총 11개 액터 버튼을 한 번만 만든다.
+	vector<AActor*> actorButtonList;
+	actorButtonList.push_back(_ship);
+	for (APlanet* planet : _planets) actorButtonList.push_back(planet);
+	actorButtonList.push_back(_blackHole);
+
+	_widget->ShowActorButtons(actorButtonList);
+	_widget->UpdateActorButtonStates(false, {});   // 시작 상태: 우주선 안 픽힘 → 전부 활성
+
+	_widget->SetOnActorSelected([this](AActor* actor)
 		{
-			UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
-			TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), target, _sun->GetMu());
-
-			if (plan.valid)
-			{
-				_transferPath = PredictTransferPath(_ship->GetCenterPos(), plan.v1, _sun->GetCenterPos(), _sun->GetMu(), plan.tof, 200);
-				_ship->SetTargetPlanet(_sun);
-				_ship->SetForceHeliocentric(true, plan.tof);
-				physics->SetVelocity(plan.v1);
-
-				_transferTarget = target;
-				_transferCaptured = false;
-			}
-
-			_widget->HidePlanetButtons();
+			SelectActor(actor);
 		});
-
 }
 
 void MainWorld::Update(float deltaTime)
 {
 	Super::Update(deltaTime);
+	_lastDeltaTime = deltaTime;
 
-	if (_transferTarget and not _transferCaptured and _ship->GetTargetPlanet() == _transferTarget)
+	if (_transferTarget and not _transferCaptured)
 	{
-		UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+		float soi = _transferTarget->GetSOIRadius(_sun->GetMu());
 		Vector2 toShip = _ship->GetCenterPos() - _transferTarget->GetCenterPos();
-		float r = max(toShip.Length(), 1.f);
-		Vector2 dir = toShip / r;
-		Vector2 perp(-dir.y, dir.x);
-		float speed = sqrtf(_transferTarget->GetMu() / r);
 
-		physics->SetVelocity(perp * speed + _transferTarget->GetVelocity());
-		_transferCaptured = true;
+		if (toShip.LengthSquared() <= soi * soi)
+		{
+			UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+			float r = max(toShip.Length(), 1.f);
+			Vector2 dir = toShip / r;
+			Vector2 perp(-dir.y, dir.x);
+			//float speed = sqrtf(_transferTarget->GetMu() / r);
+
+			Vector2 relVel = physics->GetVelocity() - _transferTarget->GetVelocity();
+			float cross = dir.x * relVel.y - dir.y * relVel.x;
+			if (cross < 0.f) perp = -perp;
+
+			float targetR = _transferTarget->GetBodyRadius() + 300.f;
+			float speed = sqrtf(_transferTarget->GetMu() / targetR);
+
+			_ship->SetCenterPos(_transferTarget->GetCenterPos() + dir * targetR);
+			physics->SetVelocity(perp * speed + _transferTarget->GetVelocity());
+			_ship->SetForceHeliocentric(false, 0.f);
+			_transferCaptured = true;
+		}
 	}
+	
+
+	
 	
 	// 아직 게임플레이 콘텐츠가 없어서, G 키로 게임오버 전환을 임시로 시연한다.
 	if (_INPUT.GetButtonDown(KeyType::P))
@@ -127,12 +157,10 @@ void MainWorld::Update(float deltaTime)
 		if (_INPUT.IsMouseInsideWindow(GAME.GetGameViewportRect()) and not io.WantCaptureMouse and not overOwnUI)
 		{
 			Vector2 worldPos = _camera.WorldToMousePos(mousePos);
-			_selected = PickActor(worldPos);
-			_camera.SetFollowTarget(_selected);
-
-			if (_selected == _ship)
-				_widget->ShowPlanetButtions(_planets);
-			else _widget->HidePlanetButtons();
+			if (AActor* picked = PickActor(worldPos))
+				SelectActor(picked);
+			else
+				DeselectActor();   // 빈 공간 클릭 → 픽/선택 해제
 		}
 	}
 
@@ -212,6 +240,13 @@ void MainWorld::Render(HDC hdc)
 
 	_lightingSystem->EndRender(hdc);
 
+	if (_ship->GetIsThrusting())
+	{
+		Vector2 enginePos = _ship->GetCenterPos() - _ship->GetForwardDir() * 12.f;   // 선체 뒤쪽(엔진 위치)
+		_lightingSystem->SpawnEngineParticle(_camera.WorldToScreen(enginePos), -_ship->GetForwardDir());
+	}
+	_lightingSystem->UpdateAndRenderParticle(_lastDeltaTime);
+
 	// 행성 궤도 모양 (은은한 점섬)
 	for (auto planet : _planets)
 	{
@@ -252,8 +287,125 @@ void MainWorld::SetCameraOnGUIDoubleClickedEvent(AActor* target)
 {
 	Super::SetCameraOnGUIDoubleClickedEvent(target);
 
-	if (target == _ship) _widget->ShowPlanetButtions(_planets);
-	else _widget->HidePlanetButtons();
+	SelectActor(target);
+}
+
+vector<APlanet*> MainWorld::GetReachablePlanets() const
+{
+	// 최단(직행) 전이가 아니라 크게 삥 도는 전이만 나오는 행성은 버튼에서 제외한다.
+	// 기준: 예상 궤도의 태양 기준 최대거리가 출발/도착 거리 중 큰 쪽의 1.5배를 넘으면 "삥 도는 것"으로 판단.
+	//  - 이상적인 호만전이는 정확히 1.0배(원일점 = max(r1,r2))라 1.5배면 위상이 살짝 안 맞는 정도는 봐주고,
+	//    위상이 많이 어긋나 궤도가 크게 부푸는 경우만 걸러낸다.
+	constexpr float kMaxApoapsisRatio = 1.5f;
+
+	vector<APlanet*> result;
+	UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+	float r1 = _ship->GetCenterPos().Length();
+
+	for (APlanet* planet : _planets)
+	{
+		TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), planet, _sun->GetMu());
+		if (not plan.valid) continue;
+
+		vector<Vector2> path = PredictTransferPath(_ship->GetCenterPos(), plan.v1, _sun->GetCenterPos(), _sun->GetMu(), plan.tof, 60);
+		float maxDist = 0.f;
+		for (const Vector2& p : path)
+			maxDist = max(maxDist, (p - _sun->GetCenterPos()).Length());
+
+		float r2 = planet->GetCenterPos().Length();
+
+		if (maxDist <= kMaxApoapsisRatio * max(r1, r2))
+			result.push_back(planet);
+	}
+
+	return result;
+}
+
+void MainWorld::SelectActor(AActor* actor)
+{
+	if (not actor) return;
+
+	if (actor == _ship)
+	{
+		// 우주선 버튼(혹은 뷰포트에서 우주선 클릭) → "목적지 선택 모드"로 진입.
+		_selected = _ship;
+		_camera.SetFollowTarget(_ship);
+		_widget->UpdateActorButtonStates(true, GetReachablePlanets());
+		SOUND.Play(L"S_Spaceship", true);
+		return;
+	}
+	else
+	{
+		SOUND.Stop(L"S_Spaceship");
+	}
+
+	if (_selected == _ship)
+	{
+		// 이미 우주선이 픽힌 상태에서 행성을 고르면 전이 시작. 행성이 아니면(블랙홀 등) 그냥 포커스.
+		if (APlanet* planet = dynamic_cast<APlanet*>(actor))
+		{
+			StartTransfer(planet);
+			return;
+		}
+	}
+
+	// 그 외엔 그냥 포커스만 (카메라 따라가기 + 디버그 패널용 선택 상태).
+	_selected = actor;
+	_camera.SetFollowTarget(actor);
+	_widget->UpdateActorButtonStates(false, {});
+
+	if (_selected == _blackHole)
+	{
+		SOUND.Play(L"S_BlackHole", true);
+	}
+	else
+	{
+		SOUND.Stop(L"S_BlackHole");
+	}
+}
+
+void MainWorld::StartTransfer(APlanet* target)
+{
+	UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+	TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), target, _sun->GetMu());
+
+	if (plan.valid)
+	{
+		_transferPath = PredictTransferPath(_ship->GetCenterPos(), plan.v1, _sun->GetCenterPos(), _sun->GetMu(), plan.tof, 200);
+
+		float maxDist = 0.f;
+		for (const Vector2& p : _transferPath)
+			maxDist = max(maxDist, (p - _sun->GetCenterPos()).Length());
+		_transferApoapsis = maxDist;
+
+		_ship->SetTargetPlanet(_sun);
+		_ship->SetForceHeliocentric(true, plan.tof);
+		physics->SetVelocity(plan.v1);
+
+		_transferTarget = target;
+		_transferAngleDeg = plan.transferAngle * (180.f / 3.14159265f);
+		_transferCaptured = false;
+	}
+
+	// 전이를 걸었으니(성공/실패 여부와 무관하게) 목적지 선택 모드는 종료 — 버튼은 다시 전부 활성.
+	_selected = nullptr;
+	_widget->UpdateActorButtonStates(false, {});
+}
+
+void MainWorld::DeselectActor()
+{
+	if (_selected == _blackHole)
+	{
+		SOUND.Stop(L"S_BlackHole");
+	}
+	if (_selected == _ship)
+	{
+		SOUND.Stop(L"S_Spaceship");
+	}
+
+	_selected = nullptr;
+	_camera.SetFollowTarget(nullptr);
+	_widget->UpdateActorButtonStates(false, {});
 }
 
 void MainWorld::InitPlanet()
@@ -393,25 +545,36 @@ void MainWorld::OnSceneGUI()
 		if (APlanet* p = dynamic_cast<APlanet*>(_selected))
 			ImGui::Text("선택된 행성: %s", p->GetName().c_str());
 	}
-
+	if (_transferTarget)
+	{
+		float r1 = _ship->GetCenterPos().Length();          // 출발 시 태양으로부터 거리(근사)
+		float r2 = _transferTarget->GetCenterPos().Length();
+		ImGui::Text("전이 최대거리: %.0f (출발 %.0f / 목표 %.0f)", _transferApoapsis, r1, r2);
+	}
 	if (APlanet* mercury = _planets.size() > 1 ? _planets[1] : nullptr)   // 인덱스는 실제 순서에 맞게
 	{
 		float dist = (mercury->GetCenterPos() - _sun->GetCenterPos()).Length();
 		ImGui::Text("수성 현재 거리: %.1f (근일점 예상 15880 / 원일점 예상 24120)", dist);
 	}
 
-	if (_blackHole)
+	if (APlanet* p = dynamic_cast<APlanet*>(_selected))
 	{
-		Vector2 bhPos = _camera.WorldToScreen(_blackHole->GetCenterPos());
-		float bhRadius = _camera.WorldToScreenScale(_blackHole->GetEventHorizonRadius());
-		float effectRadius = bhRadius * 3.5f;
-		ImGui::Text("bhPos: %.1f, %.1f", bhPos.x, bhPos.y);
-		ImGui::Text("bhRadius: %.2f", bhRadius);
-		ImGui::Text("effectRadius: %.2f", effectRadius);
-		ImGui::Text("Glow destSize: %.2f", (effectRadius * 0.8f) * 2.f);
-		ImGui::Text("Zoom: %.5f", _camera.GetZoom());
-		ImGui::Text("AlphaBlend 성공?: %s", _lightingSystem->GetDebugLastGlowOk() ? "true" : "false");
+		float err = ComputePhaseAngleError(_ship->GetCenterPos(), p, _sun->GetMu());
+		ImGui::Text("위상 오차: %.1f도 (0에 가까울수록 직행)", err);
 	}
+
+	//if (_blackHole)
+	//{
+	//	Vector2 bhPos = _camera.WorldToScreen(_blackHole->GetCenterPos());
+	//	float bhRadius = _camera.WorldToScreenScale(_blackHole->GetEventHorizonRadius());
+	//	float effectRadius = bhRadius * 3.5f;
+	//	ImGui::Text("bhPos: %.1f, %.1f", bhPos.x, bhPos.y);
+	//	ImGui::Text("bhRadius: %.2f", bhRadius);
+	//	ImGui::Text("effectRadius: %.2f", effectRadius);
+	//	ImGui::Text("Glow destSize: %.2f", (effectRadius * 0.8f) * 2.f);
+	//	ImGui::Text("Zoom: %.5f", _camera.GetZoom());
+	//	ImGui::Text("AlphaBlend 성공?: %s", _lightingSystem->GetDebugLastGlowOk() ? "true" : "false");
+	//}
 
 }
 

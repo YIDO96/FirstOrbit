@@ -15,11 +15,13 @@ public:
 	virtual void Render(HDC hdc) override;
 	virtual void OnGUI() override;
 	
-
+	
 	void UpdateTargetPlanet();
 	void Input(float deltaTime);
 	void Reset();
 	void SetTargetPlanet(class APlanet* planet) { _targetPlanet = planet; }
+	void UpdateAutoPilot(float deltaTime);
+
 
 	void ReFuelFull() { _fuel = _maxFuel; }
 	void IncreaseFuel(float fuel) { _maxFuel += fuel; }
@@ -29,6 +31,8 @@ public:
 	void SetOnHVChanged(FOnHVChanged callback) { _onHVChanged = callback; }
 
 
+	void SetAutoPilot(bool b) { _autoPilot = b; }
+	bool IsAutoPilot() const { return _autoPilot; }
 
 	void SetForceHeliocentric(bool force, float duration = 0.f);
 
@@ -38,6 +42,7 @@ public:
 	KeyType GetKeyInput() const { return _keyInput; }
 	float GetFuel() const { return _fuel; }
 	float GetMaxFuel() const { return _maxFuel; }
+	bool IsForceHeliocentric() const { return _forceHeliocentric; }
 
 private:
 	// 임시
@@ -58,6 +63,7 @@ private:
 
 	class APlanet* _targetPlanet = nullptr;
 	class UPhysicsComponent* _physicsComp = nullptr;
+	class UCircleColliderComponent* _circleCollider = nullptr;   // 추가: PickActor가 인식할 수 있도록
 
 
 	//float _moveSpeed = 100.f;
@@ -79,5 +85,12 @@ private:
 
 	bool _forceHeliocentric = false;
     float _forceHeliocentricTimer = 0.f;
+
+	float _autoTargetDegree = 0.f;
+	bool _autoPilot = false;
+
+	static constexpr int32 kMinSpeedForTurn = 30;
+	static constexpr int32 kInitialKickDegree = 3;
+	int32 minAltitudeForTurn = 1000;
 };
 

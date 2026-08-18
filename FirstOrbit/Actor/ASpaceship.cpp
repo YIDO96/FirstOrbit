@@ -3,11 +3,12 @@
 
 #include "Core/InputManager.h"
 #include "Core/ResourceManager.h"
+#include "Core/SoundManager.h"
 #include "GameFramework/Camera.h"
 #include "GameFramework/Texture.h"
 #include "GameFramework/World.h"
 #include "GameFramework/Components/UPhysicsComponent.h"
-#include "GameFramework/Components/UAABBColliderComponent.h"
+#include "GameFramework/Components/UCircleColliderComponent.h"
 #include "Actor/APlanet.h"
 
 void ASpaceship::Init()
@@ -16,9 +17,9 @@ void ASpaceship::Init()
 	_type = EActorType::Ship;
 	_name = "SpaceShip";
 
-	//UAABBColliderComponent* collider = AddComponent<UAABBColliderComponent>();
-	//collider->SetSide(_size);
-	//_collider = collider;
+	_circleCollider = AddComponent<UCircleColliderComponent>();
+	_circleCollider->SetRadius(12.f);   // _size(12x20) 대각선 절반에 맞춘 클릭 반경
+	_collider = _circleCollider;
 
 	_physicsComp = AddComponent<UPhysicsComponent>();
 	SetTexture(RESOURCE.GetTexture(L"Spaceship"));
@@ -188,6 +189,12 @@ void ASpaceship::Input(float deltaTime)
 {
 	if (_physicsComp->GetIsPaused()) return;   // 발사 대기 중엔 조작 자체를 막는다
 
+	if (_autoPilot)
+	{
+		UpdateAutoPilot(deltaTime);   // TODO: 새로 만들 함수
+		return;
+	}
+
 	// Rotate (Right,Left)
 	if (_INPUT.GetButtonPressed(KeyType::A) or _INPUT.GetButtonPressed(KeyType::Left)) AddRotation(-_rotSpeed * deltaTime);
 	if (_INPUT.GetButtonPressed(KeyType::D) or _INPUT.GetButtonPressed(KeyType::Right)) AddRotation(_rotSpeed * deltaTime);
@@ -204,6 +211,38 @@ void ASpaceship::Reset()
 	_keyInput = KeyType::L;
 	_trail.clear();
 	_trailSampleTimer = 0.f;
+}
+
+void ASpaceship::UpdateAutoPilot(float deltaTime)
+{
+	float altitude = -GetCenterPos().y;
+
+	Vector2 vel = _physicsComp->GetVelocity();
+	float speed = vel.Length();
+
+	if (altitude < 800)
+	{
+		_autoTargetDegree = 0.f;
+	}
+	else if (altitude < 1000)
+	{
+		_autoTargetDegree = kInitialKickDegree;
+	}
+	else
+		_autoTargetDegree = clamp(RadianToDegree(atan2f(vel.x, -vel.y)), 0.f, 15.f);
+
+	
+	float diff = _autoTargetDegree - GetDegree();
+	diff = fmodf(diff + 180.f, 360.f);
+	if (diff < 0.f) diff += 360.f;
+	diff -= 180.f;
+
+
+	float maxStep = _rotSpeed * deltaTime;
+	AddRotation(clamp(diff, -maxStep, maxStep));
+
+	_isThrusting = true;
+
 }
 
 void ASpaceship::SetForceHeliocentric(bool force, float duration)

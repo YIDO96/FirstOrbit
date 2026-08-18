@@ -31,9 +31,12 @@ private:
 	void OnHVChanged(float newHV);
 
 private:
+	UIText* _titleText = nullptr;
 	UIText* _launchStateText = nullptr;
 	UIText* _altitudeText = nullptr;
 	UIText* _horizontalVelocityText = nullptr;
+	UIText* _scoreText = nullptr;   // TODO: 점수 시스템 확정되면 실제 값 연결
+	UIText* _comboText = nullptr;   // TODO: 콤보 시스템 확정되면 실제 값 연결
 
 	UISlider* _fuelSlider = nullptr;
 

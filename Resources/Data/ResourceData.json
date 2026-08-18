@@ -26,10 +26,11 @@
     },
     "Sound":
     {
-        "B_Bauns":{ "fileName":"B_Bauns.wav"},
-        "Bauns":{ "fileName":"Bauns.wav"},
-        "DeadS":{ "fileName":"DeadS.wav"},
-        "Select":{ "fileName":"Select.wav"},
-        "Star":{ "fileName":"Star.wav"}
+        "S_BlackHole":{ "fileName":"Sound_Blackhole.wav"},
+        "S_Space":{ "fileName":"Sound_Space.wav"},
+        "S_Spaceship":{ "fileName":"Sound_Spaceship.wav"},
+        "S_SpaceshipLaunch":{ "fileName":"Sound_SpaceshipLaunch.wav"},
+        "S_Main":{ "fileName":"Sound_Main.wav"},
+        "S_Countdown":{ "fileName":"Sound_Countdown.wav"}
     }
 }

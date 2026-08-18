@@ -104,6 +104,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             }
 
             {
+#ifdef _DEBUG
                 // 1. ImGui 새 프레임
                 ImGui_ImplWin32_NewFrame();
                 ImGui::NewFrame();
@@ -116,6 +117,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                     showDemo = !showDemo;
                 if (showDemo)
                     ImGui::ShowDemoWindow(&showDemo);
+#endif
 
                 static double msUpdate = 0, msGameRender = 0, msViewport = 0;
                 double toMs = 1000.0 / frequency.QuadPart;
@@ -127,6 +129,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                 ::QueryPerformanceCounter(&b);
                 msUpdate = (b.QuadPart - a.QuadPart) * toMs;
 
+#ifdef _DEBUG
                 // --- UI 구성 (지난 프레임 측정값 표시) ---
                 ImGui::SetNextWindowPos(ImVec2((float)GWinSizeX, 0.f), ImGuiCond_FirstUseEver);
                 ImGui::SetNextWindowSize(ImVec2((float)GImGuiPanelWidth, (float)GWinSizeY), ImGuiCond_FirstUseEver);
@@ -144,6 +147,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
                 game.OnGui();
                 ImGui::Render();
+#endif
 
                 // --- GameRender 측정 ---
                 ::QueryPerformanceCounter(&a);
@@ -151,12 +155,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                 ::QueryPerformanceCounter(&b);
                 msGameRender = (b.QuadPart - a.QuadPart) * toMs;
 
+#ifdef _DEBUG
                 // --- Viewport 측정 ---
                 ::QueryPerformanceCounter(&a);
                 ImGui::UpdatePlatformWindows();
                 ImGui::RenderPlatformWindowsDefault();
                 ::QueryPerformanceCounter(&b);
                 msViewport = (b.QuadPart - a.QuadPart) * toMs;
+#endif
 
                 // 다음 프레임 기준 시각 갱신 (+= 누적 → Sleep 오차가 안 쌓이고 평균 120FPS 수렴).
                 prev.QuadPart += frameTicks;

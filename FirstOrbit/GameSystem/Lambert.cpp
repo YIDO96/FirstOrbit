@@ -86,7 +86,7 @@ LambertResult SolveLambert(Vector2 r1, Vector2 r2, float tof, float mu)
 	result.v1 = (r2 - r1 * f) * (1.f / g);
 	result.v2 = (r2 * gDot - r1) * (1.f / g);
 	result.valid = true;
-
+	result.transferAngle = dNu;
 
 
 	return result;
