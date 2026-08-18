@@ -49,6 +49,9 @@ public:
 	void AddStartCluster(Vector2 center, int count, float radius);
 	void AddBlackHoleFallingStars(Vector2 center, int count, float maxRadius, float eventRadius);
 
+	// 저고도 구름
+	void RenderCloud(const Vector2& pos, float radius, BYTE intensity = 255);
+
 
 	HDC GetBufferDC() const { return _hDIBDC; }
 	bool GetDebugLastGlowOk() const { return _debugLastGlowOk; }   // TEMP DEBUG
@@ -76,6 +79,7 @@ private:
 	Glow* _engineGlow = nullptr;
 	Glow* _accretionGlow = nullptr; // 블랙홀 강착원반용
 	Glow* _blackholeGlow = nullptr;
+	Glow* _cloudGlow = nullptr;
 
 	// 엔진 파티클 컨테이너
 	vector<EngineParticle> _particles;

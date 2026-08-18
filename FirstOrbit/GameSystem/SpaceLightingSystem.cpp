@@ -25,7 +25,7 @@ bool SpaceLightingSystem::Initialize(HDC hdc, int width, int height)
 
 	// 텍스처 미리 캐싱 (로딩 시 1회 생성)
 	_sunGlow = new Glow();
-	_sunGlow->Create(256, RGB(255, 210, 120));
+	_sunGlow->Create(256, RGB(255, 120, 40));
 
 	_engineGlow = new Glow();
 	_engineGlow->Create(128, RGB(255, 140, 40));
@@ -36,6 +36,9 @@ bool SpaceLightingSystem::Initialize(HDC hdc, int width, int height)
 
 	_blackholeGlow = new Glow();
 	_blackholeGlow->Create(256, RGB(255, 255, 255));
+
+	_cloudGlow = new Glow();
+	_cloudGlow->Create(200, RGB(255, 255, 255));
 
 	return true;
 }
@@ -55,6 +58,7 @@ void SpaceLightingSystem::Release()
 	delete _sunGlow;      _sunGlow = nullptr;
 	delete _engineGlow;   _engineGlow = nullptr;
 	delete _accretionGlow; _accretionGlow = nullptr;
+	delete _cloudGlow; _cloudGlow = nullptr;
 }
 
 void SpaceLightingSystem::GenerateStarfield(int starCount, float range)
@@ -157,6 +161,7 @@ void SpaceLightingSystem::UpdateStars(float deltaTime)
 
 		star.x = x; star.y = y;
 	}
+
 
 	// 블랙홀 근처 별 (안쪽으로 빨려들며 회전(강착원반처럼), 흡수되면 다시 바깥에서 재생성)
 	constexpr float kFallSpeed = 800.f;
@@ -427,4 +432,9 @@ void SpaceLightingSystem::AddBlackHoleFallingStars(Vector2 center, int count, fl
 		s.radius = eventRadius + powf(t, 4.f) * (maxRadius - eventRadius);
 		_fallingStars.push_back(s);
 	}
+}
+
+void SpaceLightingSystem::RenderCloud(const Vector2& pos, float radius, BYTE intensity)
+{
+	_cloudGlow->Render(_hDIBDC, pos, radius, intensity);
 }

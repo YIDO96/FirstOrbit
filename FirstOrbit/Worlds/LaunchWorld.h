@@ -2,6 +2,13 @@
 
 #include "GameFramework/World.h"
 
+struct CloudPuff
+{
+	Vector2 pos;
+	float radius;
+};
+
+
 class LaunchWorld : public World
 {
 	using Super = World;
@@ -14,6 +21,8 @@ public:
 
 	virtual void ResetCamera(Vector2 pos) { _camera.SetPosition(pos); _camera.SetZoomImmediate(2.f); }
 	COLORREF ComputeRayleighSkyColor(float density);
+
+	void GetAtmosphereDensity(HDC hdc, float altitude);
 
 	class Widget_Launch* GetWidget()  { return _launchWidget; }
 
@@ -40,4 +49,7 @@ private:
 
 	class SpaceLightingSystem* _lightingSystem = nullptr;
 	float _lastDeltaTime = 0.f;
+
+	vector<CloudPuff> _clouds;
+	float _cloudDriftSpeed = 0.f; // 초당 이동량
 };
