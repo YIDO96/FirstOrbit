@@ -12,8 +12,11 @@ public:
 
 	float WorldToScreenScale(float worldLen) const;
 	Vector2 WorldToScreen(Vector2 worldPos);  // 월드 좌표를 스크린 좌표로 변환
+	Vector2 WorldToScreenAtZ(Vector2 worldPos, float z);
 	Vector2 ScreenToWorld(Vector2 screenPos); // 스크린좌표를 월드 좌표로 변환
 	
+	Vector2 WorldToScreenSolar(Vector2 worldPos) { return WorldToScreenAtZ(worldPos, _galacticZ); }
+
 	Vector2 WorldToMousePos(Vector2 mousePos);
 	Vector2 WorldSpaceDelta();
 
@@ -32,6 +35,8 @@ public:
 	void SetFollowTarget(class AActor* target) { _followTarget = target; }
 	void SetTargetPosition(Vector2 pos) { _targetPosition = pos; }
 	void SetFollowOffset(Vector2 offset) { _followOffset = offset; }
+	void SetSideView(bool enabled) { _isSideView = enabled; }
+	void AddGalacticDrift(float delta) { _galacticZ += delta; }
 
 
 	Vector2 GetPosition() const { return _position; }
@@ -39,6 +44,8 @@ public:
 	float GetRotation() const { return _rotation; }
 	AActor* GetFollowTarget() const { return _followTarget; }
 	const Matrix3x3 GetViewMatrix() const { return _view; }
+	bool IsSideView() const { return _isSideView; }
+	float GetGalacticZ() const { return _galacticZ; }
 
 private:
 	void UpdateViewMatrix();
@@ -83,4 +90,8 @@ private:
 	float _shakeTimer = 0.f;
 	float _shakeMagnitude = 0.f;
 	Vector2 _shakeOffset;
+
+
+	bool _isSideView = false;
+	float _galacticZ = 0.f;
 };

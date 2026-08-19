@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Widget_Main.h"
 
+#include "Core/GameInstance.h"
 #include "Core/ResourceManager.h"
 
 #include "Gameframework/Texture.h"
@@ -26,6 +27,9 @@ void Widget_Main::Init()
 	_titleText->Init(EAnchor::Top, EPivot::Top, Vector2(0.f, 15.f), Vector2(0, 0), L"First Orbit");
 	_titleText->SetFontSize(28.f);
 
+	static const float kSpeedOptions[4] = { 1.f, 10.f, 20.f, 100.f };
+	static const wchar_t* kSpeedLabels[4] = { L"x1", L"x10", L"x20", L"x100" };
+
 	for (int i = 0; i < kLineCount; ++i)
 	{
 		_lines[i] = AddChild<UIText>();
@@ -46,6 +50,25 @@ void Widget_Main::Init()
 		{
 			if (_ship) _ship->ReFuelFull();
 		});
+
+	//Vector2 smallBtnSize = btnSize * 0.7f;
+	Vector2 smallBtnSize = Vector2(btnSize.x * .5f, btnSize.y);
+	constexpr float kSpeedButtonSpacing = 90.f;
+	for (int i = 0; i < 4; ++i)
+	{
+		_speedButtons[i] = AddChild<UIButton>();
+		_speedButtons[i]->SetTexture(buttonTex);
+		constexpr float kSpeedButtonY = 190.f + kMaxActorButtons * 32.f + 20.f;   // = 562
+		float xOffset = (i) * kSpeedButtonSpacing;
+		_speedButtons[i]->Init(EAnchor::Top, EPivot::Top, Vector2(-90.f + i * 60.f, kSpeedButtonY), smallBtnSize);
+		_speedButtons[i]->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 3), smallBtnSize, kSpeedLabels[i], 14.f);
+
+		float speed = kSpeedOptions[i];
+		_speedButtons[i]->SetOnClick([speed]()
+			{
+				GAME.SetTimeScale(speed);
+			});
+	}
 
 	// Refuel이 연료바 위쪽으로 옮겨졌으니, 헤딩 인디케이터(우주선 방향)가 그 자리(우측 아래)로 들어간다.
 	_headingIndicator = AddChild<UIHeadingIndicator>();

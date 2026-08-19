@@ -26,7 +26,7 @@ public:
 	void Reset() { _velocity = Vector2(0.f, 0.f); _accumulator = 0.f; }
 
 
-	Vector2 ComputeAcceleration(const Vector2& pos, const Vector2& vel) const;
+	Vector2 ComputeAcceleration(const Vector2& pos, const Vector2& vel, float targetTimeOffset = 0.f) const;
 
 
 
@@ -39,7 +39,9 @@ public:
 	EIntergrator GetIntegrator() const { return _integrator; }
 
 private:
-	void PhysicsStep(float deltaTime);
+	void PhysicsStep(float deltaTime, float timeOffset);
+
+
 
 private:
 	// 가속도는 따로 두지 않음 (실시간 계산)
@@ -51,7 +53,7 @@ private:
 	// 고정 시간 스텝 시뮬레이션
 	float _accumulator = 0.f;
 	static constexpr float FIXED_DT = 1.f / 240.f;
-	static constexpr int MAX_STEPS = 25;
+	static constexpr int MAX_STEPS = 3000;
 
 	bool _isPaused = true;
 };

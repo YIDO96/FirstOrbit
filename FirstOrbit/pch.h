@@ -15,6 +15,7 @@
 #include <cassert>
 #include <numbers>
 #include <cmath>
+#include <deque>
 
 
 // C++ 20 std::format

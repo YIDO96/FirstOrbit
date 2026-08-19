@@ -85,7 +85,7 @@ void ASpaceship::Render(HDC hdc)
 	Super::Render(hdc);
 
 	Camera& cam = _ownerWorld->GetCamera();
-	Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
+	Vector2 screenPos = cam.WorldToScreenSolar(GetCenterPos());
 	if (_texture)
 	{
 		//Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
@@ -103,10 +103,13 @@ void ASpaceship::Render(HDC hdc)
 	}
 
 
-	for (const Vector2& p : _trail)
+	if (!cam.IsSideView())
 	{
-		Vector2 s = cam.WorldToScreen(p);
-		::SetPixel(hdc, (int)s.x, (int)s.y, color);
+		for (const Vector2& p : _trail)
+		{
+			Vector2 s = cam.WorldToScreen(p);
+			::SetPixel(hdc, (int)s.x, (int)s.y, color);
+		}
 	}
 
 }
@@ -147,6 +150,7 @@ void ASpaceship::UpdateTargetPlanet()
 		if (actor->GetType() != EActorType::Planet) continue;
 
 		APlanet* planet = static_cast<APlanet*>(actor);
+		if (planet->IsMoon()) continue;
 		if (!dominant || planet->GetMu() > dominant->GetMu())
 			dominant = planet;
 	}
@@ -166,7 +170,7 @@ void ASpaceship::UpdateTargetPlanet()
 
 		APlanet* planet = static_cast<APlanet*>(actor);
 		if (planet == dominant) continue;
-
+		if (planet->IsMoon()) continue;
 
 		float soi = planet->GetSOIRadius(dominant->GetMu());
 		if (soi <= 0.f) continue;

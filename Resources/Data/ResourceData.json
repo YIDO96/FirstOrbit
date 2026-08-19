@@ -17,6 +17,7 @@
       "Mercury": {"fileName": "Mercury.bmp", "transparent":[255, 0, 255]},
       "Venus": {"fileName": "Venus.bmp", "transparent":[255, 0, 255]},
       "Earth":  {"fileName":  "Earth.bmp", "transparent": [255, 0, 255]},
+      "Moon":  {"fileName":  "Moon.bmp", "transparent": [255, 0, 255]},
       "Mars": {"fileName": "Mars.bmp", "transparent":[255, 0, 255]},
       "Jupiter": {"fileName": "Jupiter.bmp", "transparent":[255, 0, 255]},
       "Uranus": {"fileName": "Uranus.bmp", "transparent":[255, 0, 255]},

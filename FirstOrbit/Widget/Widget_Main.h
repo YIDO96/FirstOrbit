@@ -39,6 +39,8 @@ private:
 	UIButton* _refuelButton = nullptr;
 	UIHeadingIndicator* _headingIndicator = nullptr;
 
+	class UIButton* _speedButtons[4] = {};   // x1(해제) 포함 4개
+
 	static constexpr int kMaxActorButtons = 11;   // 우주선 1 + 태양계(태양+행성8) 9 + 블랙홀 1
 	class UIButton* _actorButtons[kMaxActorButtons] = {};
 	class AActor* _actorButtonTargets[kMaxActorButtons] = {};   // 버튼 인덱스 → 액터 매핑

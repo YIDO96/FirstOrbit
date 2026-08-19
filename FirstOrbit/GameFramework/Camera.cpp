@@ -122,7 +122,11 @@ void Camera::UpdateDrag()
 void Camera::UpdateFollow(float deltaTime)
 {
 	if (_followTarget)
-		_targetPosition = _followTarget->GetCenterPos() + _followOffset;
+	{
+		Vector2 targetWorldPos = _followTarget->GetCenterPos();
+		Vector2 projected = _isSideView ? Vector2(_galacticZ, targetWorldPos.y) : targetWorldPos;
+		_targetPosition = projected + _followOffset;
+	}
 	else
 		_targetPosition = _position;
 
@@ -176,17 +180,12 @@ float Camera::WorldToScreenScale(float worldLen) const
 }
 Vector2 Camera::WorldToScreen(Vector2 worldPos)
 {
-	// 월드 좌표 - 카메라 월드 좌표 + Screen의 사이즈 절반값
-
-	//Vector2 screenPos;
-	//Vector2 size = Vector2(_width, _height);
-	//
-	//
-	//screenPos = worldPos - _position + (size / 2);
-	//
-	//return screenPos;
-
-	return _view.TransformPoint(worldPos);
+	return _view.TransformPoint(worldPos);   // 항상 리터럴 변환
+}
+Vector2 Camera::WorldToScreenAtZ(Vector2 worldPos, float z)
+{
+	Vector2 projected = _isSideView ? Vector2(z, worldPos.y) : worldPos;
+	return _view.TransformPoint(projected);
 }
 Vector2 Camera::ScreenToWorld(Vector2 screenPos)
 {

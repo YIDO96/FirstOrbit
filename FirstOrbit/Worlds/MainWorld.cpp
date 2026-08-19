@@ -95,9 +95,14 @@ void MainWorld::Enter()
 	_widget->BindShip(_ship);
 
 	// 우주선 + 태양계(태양 포함) + 블랙홀, 총 11개 액터 버튼을 한 번만 만든다.
+	// 위성은 아직 클릭/타겟 대상이 아니라서 버튼 목록에서 제외 (kMaxActorButtons 초과 방지).
 	vector<AActor*> actorButtonList;
 	actorButtonList.push_back(_ship);
-	for (APlanet* planet : _planets) actorButtonList.push_back(planet);
+	for (APlanet* planet : _planets)
+	{
+		if (planet->IsMoon()) continue;
+		actorButtonList.push_back(planet);
+	}
 	actorButtonList.push_back(_blackHole);
 
 	_widget->ShowActorButtons(actorButtonList);
@@ -111,17 +116,33 @@ void MainWorld::Enter()
 
 void MainWorld::Update(float deltaTime)
 {
+	for (auto planet : _planets)
+		planet->RefreshOrbitCenter();
+
+	// 고배속에서 우주선이 한 프레임에 SOI 지름보다 멀리 이동하면(터널링) 포획 판정을 놓칠 수 있어서,
+	// 물리 갱신 전 위치를 저장해두고 이번 프레임에 지나온 궤적(선분) 전체를 검사한다.
+	Vector2 shipPosBeforeUpdate = _ship->GetCenterPos();
+
 	Super::Update(deltaTime);
 	_lastDeltaTime = deltaTime;
 
 	if (_transferTarget and not _transferCaptured)
 	{
 		float soi = _transferTarget->GetSOIRadius(_sun->GetMu());
-		Vector2 toShip = _ship->GetCenterPos() - _transferTarget->GetCenterPos();
+		Vector2 planetPos = _transferTarget->GetCenterPos();
 
-		if (toShip.LengthSquared() <= soi * soi)
+		Vector2 seg = _ship->GetCenterPos() - shipPosBeforeUpdate;
+		float segLenSq = seg.LengthSquared();
+		float t = (segLenSq > 0.0001f)
+			? clamp((planetPos - shipPosBeforeUpdate).Dot(seg) / segLenSq, 0.f, 1.f) : 0.f;
+
+		//Vector2 toShip = _ship->GetCenterPos() - _transferTarget->GetCenterPos();
+		Vector2 closestOnPath = shipPosBeforeUpdate + seg * t;
+
+		if ((closestOnPath - planetPos).LengthSquared() <= soi * soi)
 		{
 			UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
+			Vector2 toShip = _ship->GetCenterPos() - planetPos;
 			float r = max(toShip.Length(), 1.f);
 			Vector2 dir = toShip / r;
 			Vector2 perp(-dir.y, dir.x);
@@ -138,6 +159,7 @@ void MainWorld::Update(float deltaTime)
 			physics->SetVelocity(perp * speed + _transferTarget->GetVelocity());
 			_ship->SetForceHeliocentric(false, 0.f);
 			_transferCaptured = true;
+			_transferPath.clear();   // 도착했으니 흰 점(예상 경로 프리뷰)은 지운다
 		}
 	}
 	
@@ -147,7 +169,34 @@ void MainWorld::Update(float deltaTime)
 	// 아직 게임플레이 콘텐츠가 없어서, G 키로 게임오버 전환을 임시로 시연한다.
 	if (_INPUT.GetButtonDown(KeyType::P))
 		WORLD.ChangeWorld("GameOverWorld");
+	_camera.AddGalacticDrift(_galacticDriftSpeed * deltaTime);
+	//_galacticZ += _galacticDriftSpeed * deltaTime;
 
+	//_trailRecordTimer += deltaTime;
+	//if (_trailRecordTimer >= kTrailRecoredIntervasl)
+	//{
+	//	_trailRecordTimer -= kTrailRecoredIntervasl;
+	//	for (auto planet : _planets)
+	//		planet->RecordTrailPoint(_galacticZ);
+	//}
+
+	if (_INPUT.GetButtonDown(KeyType::V))
+	{
+		bool newSideView = !_camera.IsSideView();
+		_camera.SetSideView(newSideView);
+		if (newSideView)
+			_camera.SetFollowTarget(_sun);
+		else
+			_camera.SetFollowTarget(_ship);
+	}
+		//_isSideView = !_isSideView;
+	_trailRecordTimer += deltaTime;
+	if (_trailRecordTimer >= kTrailRecordInterval)
+	{
+		_trailRecordTimer -= kTrailRecordInterval;
+		for (auto planet : _planets)
+			planet->RecordTrailPoint(_camera.GetGalacticZ());
+	}
 
 	if (_INPUT.GetButtonDown(KeyType::LeftMouse))
 	{
@@ -213,7 +262,7 @@ void MainWorld::Render(HDC hdc)
 	_lightingSystem->BeginRender(_camera);
 
 	// 태양 빛
-	_lightingSystem->RenderSunGlow(_camera.WorldToScreen(_sun->GetCenterPos()),
+	_lightingSystem->RenderSunGlow(_camera.WorldToScreenSolar((_sun->GetCenterPos())),
 		_camera.WorldToScreenScale(_sun->GetBodyRadius() * 15.f), 140);
 
 	// 행성 그림자
@@ -225,8 +274,8 @@ void MainWorld::Render(HDC hdc)
 		APlanet* planet = static_cast<APlanet*>(actor);
 
 		_lightingSystem->ApplyPlanetShadow(
-			_camera.WorldToScreen(_sun->GetCenterPos()),
-			_camera.WorldToScreen(planet->GetCenterPos()),
+			_camera.WorldToScreenSolar((_sun->GetCenterPos())),
+			_camera.WorldToScreenSolar((planet->GetCenterPos())),
 			_camera.WorldToScreenScale(planet->GetBodyRadius()));
 	}
 	
@@ -235,15 +284,16 @@ void MainWorld::Render(HDC hdc)
 
 	// 블랙홀
 	_lightingSystem->ApplyBlackHoleLensing(
-		_camera.WorldToScreen(_blackHole->GetCenterPos()),
+		_camera.WorldToScreen((_blackHole->GetCenterPos())),
 		bhScreenRadius,100.f);
 
 	_lightingSystem->EndRender(hdc);
 
+	// 우주선 엔진
 	if (_ship->GetIsThrusting())
 	{
 		Vector2 enginePos = _ship->GetCenterPos() - _ship->GetForwardDir() * 12.f;   // 선체 뒤쪽(엔진 위치)
-		_lightingSystem->SpawnEngineParticle(_camera.WorldToScreen(enginePos), -_ship->GetForwardDir());
+		_lightingSystem->SpawnEngineParticle(_camera.WorldToScreenSolar((enginePos)), -_ship->GetForwardDir());
 	}
 	_lightingSystem->UpdateAndRenderParticle(_lastDeltaTime);
 
@@ -252,30 +302,66 @@ void MainWorld::Render(HDC hdc)
 	{
 		if (planet == _sun) continue;
 
-		vector<Vector2> shape = planet->GetOrbitShape(150);
-		for (const Vector2& p : shape)
+		//vector<Vector2> shape = planet->GetOrbitShape(150);
+		//for (const Vector2& p : shape)
+		//{
+		//	Vector2 s = _camera.WorldToScreenSolar((p));
+		//	::SetPixel(hdc, (int)s.x, (int)s.y, RGB(255, 255, 0));
+		//}
+
+		for (const OrbitShapePoint& pt : planet->GetOrbitShapeTimed(150))
 		{
-			Vector2 s = _camera.WorldToScreen(p);
+			float z = _camera.GetGalacticZ() + _galacticDriftSpeed * pt.timeOffset;
+			Vector2 s = _camera.WorldToScreenAtZ(pt.pos, z);
 			::SetPixel(hdc, (int)s.x, (int)s.y, RGB(255, 255, 0));
 		}
 	}
 
-	for (Vector2 pos : _transferPath)
+	if (_camera.IsSideView())
 	{
-		Vector2 s = _camera.WorldToScreen(pos);
-		::SetPixel(hdc, (int)s.x, (int)s.y, RGB(255, 255, 255));
+		static const COLORREF kTrailColors[] = {
+		RGB(255, 220, 120), RGB(180, 180, 255), RGB(150, 220, 255),
+		RGB(255, 160, 160), RGB(200, 200, 200), RGB(160, 255, 200),
+		RGB(255, 200, 255), RGB(220, 255, 160), RGB(180, 160, 255),
+		};
+
+		for (size_t i = 0; i < _planets.size(); ++i)
+		{
+			if (_planets[i] == _sun) continue;
+			COLORREF color = kTrailColors[i % (sizeof(kTrailColors) / sizeof(kTrailColors[0]))];
+
+			for (const TrailPoint& pt : _planets[i]->GetTrail())
+			{
+				Vector2 s = _camera.WorldToScreenAtZ(pt.worldPos, pt.z);
+				::SetPixel(hdc, (int)s.x, (int)s.y, color);
+			}
+		}
 	}
+
+	if (!_camera.IsSideView())
+	{
+		for (Vector2 pos : _transferPath)
+		{
+			Vector2 s = _camera.WorldToScreen((pos));
+			::SetPixel(hdc, (int)s.x, (int)s.y, RGB(255, 255, 255));
+		}
+	}
+	
 
 
 
 	Super::Render(hdc);
-
-	vector<Vector2> predicted = GetGameMode<OrbitalGameMode>()->PredictPath(200, 0.5f);
-	for (const Vector2& p : predicted)
+	
+	if (!_camera.IsSideView())
 	{
-		Vector2 s = _camera.WorldToScreen(p);
-		::SetPixel(hdc, (int)s.x, (int)s.y, RGB(0, 255, 255));
+		vector<Vector2> predicted = GetGameMode<OrbitalGameMode>()->PredictPath(200, 0.5f);
+		for (const Vector2& p : predicted)
+		{
+			Vector2 s = _camera.WorldToScreen(p);
+			::SetPixel(hdc, (int)s.x, (int)s.y, RGB(0, 255, 255));
+		}
 	}
+	
 }
 
 void MainWorld::LoadTexture() 
@@ -300,11 +386,13 @@ vector<APlanet*> MainWorld::GetReachablePlanets() const
 
 	vector<APlanet*> result;
 	UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
-	float r1 = _ship->GetCenterPos().Length();
+	Vector2 sunPos = _sun->GetCenterPos();
+	float r1 = (_ship->GetCenterPos() - sunPos).Length();
 
 	for (APlanet* planet : _planets)
 	{
-		TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), planet, _sun->GetMu());
+		TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), planet, sunPos,
+			_sun->GetVelocity(), _sun->GetMu());
 		if (not plan.valid) continue;
 
 		vector<Vector2> path = PredictTransferPath(_ship->GetCenterPos(), plan.v1, _sun->GetCenterPos(), _sun->GetMu(), plan.tof, 60);
@@ -312,7 +400,7 @@ vector<APlanet*> MainWorld::GetReachablePlanets() const
 		for (const Vector2& p : path)
 			maxDist = max(maxDist, (p - _sun->GetCenterPos()).Length());
 
-		float r2 = planet->GetCenterPos().Length();
+		float r2 = (planet->GetCenterPos() - sunPos).Length();
 
 		if (maxDist <= kMaxApoapsisRatio * max(r1, r2))
 			result.push_back(planet);
@@ -367,7 +455,8 @@ void MainWorld::SelectActor(AActor* actor)
 void MainWorld::StartTransfer(APlanet* target)
 {
 	UPhysicsComponent* physics = _ship->GetComponent<UPhysicsComponent>();
-	TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), target, _sun->GetMu());
+	TransferPlan plan = FindBestTransfer(_ship->GetCenterPos(), physics->GetVelocity(), target, 
+		_sun->GetCenterPos(), _sun->GetVelocity(), _sun->GetMu());
 
 	if (plan.valid)
 	{
@@ -407,13 +496,17 @@ void MainWorld::DeselectActor()
 	_camera.SetFollowTarget(nullptr);
 	_widget->UpdateActorButtonStates(false, {});
 }
-
 void MainWorld::InitPlanet()
 {
 	// 태양계 행성들을 생성하고 초기화
 	{
 		APlanet* sun = SpawnActor<APlanet>();
-		sun->Setup("Sun", Vector2(0, 0), 0.f, 0.f, 2.88e9f, 12000.f);
+		Vector2 galacticCenter(0.f, -3000000.f); // 가상의 은하 중심 (아주 멀리)
+		float galacticRadius = 3000000.f;
+		float galacticSpeed = 0.00003f;
+		sun->Setup("Sun", galacticCenter, galacticRadius, galacticSpeed, 2.88e9f, 12000.f, 3.14159265f * 0.5f);
+
+		//sun->Setup("Sun", Vector2(0, 0), 0.f, 0.f, 2.88e9f, 12000.f);
 		sun->SetTexture(RESOURCE.GetTexture(L"Sun"));
 		_sun = sun;
 		_planets.push_back(_sun);
@@ -448,6 +541,19 @@ void MainWorld::InitPlanet()
 			_camera.SetPosition(earth->GetCenterPos());
 
 			_planets.push_back(earth);
+
+			// 달
+			randomAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			periAngle = ((float)rand() / RAND_MAX) * 6.283185f;
+			APlanet* moon = SpawnActor<APlanet>();
+			// 지구 기준 상대값 — 실제 축척은 아니고(그러면 지구 SOI 밖으로 나감), 지구 SOI(~6000) 안에
+			// 넉넉히 들어오면서 눈에 띄게: 반지름 2800, 지구 공전(0.02rad/s)보다 훨씬 빠른 0.26rad/s(24초/바퀴)
+			moon->Setup("Moon", earth->GetCenterPos(), 2800.f, 0.26f, 2.46e5f, 270.f, randomAngle, 0.05f, periAngle);
+			moon->SetTexture(RESOURCE.GetTexture(L"Moon"));
+			moon->SetOrbitCenter(earth->GetCenterPos(), earth);
+			moon->SetIsMoon(true);
+
+			_planets.push_back(moon);
 		}
 
 
@@ -499,6 +605,13 @@ void MainWorld::InitPlanet()
 			neptune->SetTexture(RESOURCE.GetTexture(L"Neptune"));
 
 			_planets.push_back(neptune);
+		}
+
+		for (auto planet : _planets)
+		{
+			if (planet == _sun) continue;
+
+			planet->SetOrbitCenter(_sun->GetCenterPos(), _sun);
 		}
 	}
 
@@ -559,7 +672,7 @@ void MainWorld::OnSceneGUI()
 
 	if (APlanet* p = dynamic_cast<APlanet*>(_selected))
 	{
-		float err = ComputePhaseAngleError(_ship->GetCenterPos(), p, _sun->GetMu());
+		float err = ComputePhaseAngleError(_ship->GetCenterPos(), p, _sun->GetCenterPos(), _sun->GetMu());
 		ImGui::Text("위상 오차: %.1f도 (0에 가까울수록 직행)", err);
 	}
 

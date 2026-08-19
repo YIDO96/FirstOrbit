@@ -50,6 +50,8 @@ public:
 	void SetLaunchHandoff(const LaunchHandoff& handoff);
 	bool ConsumeLaunchHandoff(LaunchHandoff& out);
 
+	void SetTimeScale(float scale) { _timeScale = clamp(scale, 0.f, 100.f); }
+	float GetTimeScale() const { return _timeScale; }
 
 	// F1로 토글되는 디버그 모드 (콜라이더 히트박스 시각화 등)
 	bool IsDebugMode() const { return _debugMode; }
@@ -103,6 +105,8 @@ private:
 
 	LaunchHandoff _launchHandoff;
 	bool _hasLaunchHandoff = false;
+
+	float _timeScale = 1.f;
 };
 
 

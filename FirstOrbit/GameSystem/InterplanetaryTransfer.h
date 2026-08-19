@@ -12,7 +12,7 @@ struct TransferPlan
 
 class APlanet;
 
-float ComputePhaseAngleError(Vector2 shipPos, APlanet* target, float sunMu);
+float ComputePhaseAngleError(Vector2 shipPos, APlanet* target, Vector2 sunPos, float sunMu);
 
-TransferPlan FindBestTransfer(Vector2 shipPos, Vector2 shipVel, APlanet* target, float sunMu);
+TransferPlan FindBestTransfer(Vector2 shipPos, Vector2 shipVel, APlanet* target, Vector2 sunPos, Vector2 sunVel, float sunMu);
 vector<Vector2>PredictTransferPath(Vector2 pos, Vector2 vel, Vector2 sunPos, float sunMu, float tof, int steps);

@@ -181,7 +181,7 @@ void GameInstance::Update()
 	float deltaTime = TimeManager::GetInstance().GetDT();
 
 	// 현재 월드 업데이트 (액터 업데이트/충돌/GameMode Tick까지 위임)
-	WORLD.Update(deltaTime);
+	WORLD.Update(deltaTime * _timeScale);
 
 	UIManager::GetInstance().Update(deltaTime);
 

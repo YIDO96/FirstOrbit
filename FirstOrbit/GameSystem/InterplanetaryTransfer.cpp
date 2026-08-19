@@ -10,20 +10,21 @@ static float ComputeHohmannTOF(float r1, float r2, float mu)
 	return 3.14159265f * sqrtf(a_t * a_t * a_t / mu);
 }
 
-float ComputePhaseAngleError(Vector2 shipPos, APlanet* target, float sunMu)
+float ComputePhaseAngleError(Vector2 shipPos, APlanet* target, Vector2 sunPos, float sunMu)
 {
-	float r1 = shipPos.Length();
-	Vector2 targetPos = target->GetCenterPos();
-	float r2 = targetPos.Length();
+	Vector2 r1v = shipPos - sunPos;
+	Vector2 r2v = target->GetCenterPos() - sunPos;
+	float r1 = r1v.Length();
+	float r2 = r2v.Length();
 
 	float hohmannTOF = ComputeHohmannTOF(r1, r2, sunMu);
 	float idealLead = 3.14159265f - target->GetOrbitSpeed() * hohmannTOF;
 	idealLead = fmodf(idealLead, 6.283185307f);
 	if (idealLead < 0.f)idealLead += 6.283185307f;
 
-	float cosAngle = clamp(shipPos.Dot(targetPos) / (r1 * r2), -1.f, 1.f);
+	float cosAngle = clamp(r1v.Dot(r2v) / (r1 * r2), -1.f, 1.f);
 	float currentAngle = acosf(cosAngle);
-	if (shipPos.Cross(targetPos) < 0.f) currentAngle = 6.283185307f - currentAngle;
+	if (r1v.Cross(r2v) < 0.f) currentAngle = 6.283185307f - currentAngle;
 
 	float diff = fabsf(currentAngle - idealLead);
 	if (diff > 3.14159265f) diff = 6.283185307f - diff;
@@ -31,32 +32,38 @@ float ComputePhaseAngleError(Vector2 shipPos, APlanet* target, float sunMu)
 	return diff * (180.f / 3.14159265f);
 }
 
-static TransferPlan ScanTOFRange(Vector2 shipPos, Vector2 shipVel, APlanet* target, float sunMu,
+static TransferPlan ScanTOFRange(Vector2 shipPos, Vector2 shipVel, APlanet* target, Vector2 sunPos, Vector2 sunVel, float sunMu,
 	float tofMin, float tofMax, int sampleCount)
 {
 	TransferPlan best;
 	best.totalDeltaV = FLT_MAX;
 
+	Vector2 r1 = shipPos - sunPos;
+
 	for (int i = 0; i < sampleCount; ++i)
 	{
 		float tof = tofMin + (tofMax - tofMin) * i / (float(sampleCount - 1));
 
-		Vector2 r2 = target->GetFuturePos(tof);
-		LambertResult lam = SolveLambert(shipPos, r2, tof, sunMu);
+		Vector2 r2Abs = target->GetFuturePos(tof);
+		Vector2 r2 = r2Abs - sunPos;
+		LambertResult lam = SolveLambert(r1, r2, tof, sunMu);
 		best.transferAngle = lam.transferAngle;
 		if (not lam.valid) continue;
 
+		Vector2 v1Abs = lam.v1 + sunVel;
+		Vector2 v2Abs = lam.v2 + sunVel;
+
 		Vector2 targetVelAtArrival = target->GetFutureVelocity(tof);
 
-		float dv1 = (lam.v1 - shipVel).Length();
-		float dv2 = (targetVelAtArrival - lam.v2).Length();
+		float dv1 = (v1Abs - shipVel).Length();
+		float dv2 = (targetVelAtArrival - v2Abs).Length();
 		float totalDv = dv1 + dv2;
 
 		if (totalDv < best.totalDeltaV)
 		{
 			best.tof = tof;
-			best.v1 = lam.v1;
-			best.arrivalPos = r2;
+			best.v1 = v1Abs;
+			best.arrivalPos = r2Abs;
 			best.totalDeltaV = totalDv;
 			best.valid = true;
 		}
@@ -65,10 +72,10 @@ static TransferPlan ScanTOFRange(Vector2 shipPos, Vector2 shipVel, APlanet* targ
 	return best;
 }
 
-TransferPlan FindBestTransfer(Vector2 shipPos, Vector2 shipVel, APlanet* target, float sunMu)
+TransferPlan FindBestTransfer(Vector2 shipPos, Vector2 shipVel, APlanet* target, Vector2 sunPos, Vector2 sunVel, float sunMu)
 {
-	float r1 = shipPos.Length();
-	float r2Now = target->GetCenterPos().Length();
+	float r1 = (shipPos - sunPos).Length();
+	float r2Now = (target->GetCenterPos() - sunPos).Length();
 	float hohmannTOF = ComputeHohmannTOF(r1, r2Now, sunMu);
 
 	float tofMin = hohmannTOF * 0.3f;
@@ -79,7 +86,7 @@ TransferPlan FindBestTransfer(Vector2 shipPos, Vector2 shipVel, APlanet* target,
 	constexpr float margin = 1.5f;
 
 
-	TransferPlan coarse = ScanTOFRange(shipPos, shipVel, target, sunMu, tofMin, tofMax, coarseSampleCount);
+	TransferPlan coarse = ScanTOFRange(shipPos, shipVel, target, sunPos, sunVel, sunMu, tofMin, tofMax, coarseSampleCount);
 	if (not coarse.valid) return coarse;
 
 	float coarseStep = (tofMax - tofMin) / float(coarseSampleCount - 1);
@@ -88,9 +95,10 @@ TransferPlan FindBestTransfer(Vector2 shipPos, Vector2 shipVel, APlanet* target,
 	float fineMin = coarse.tof - coarseStep * margin;
 	float fineMax = coarse.tof + coarseStep * margin;
 
-	TransferPlan fine = ScanTOFRange(shipPos, shipVel, target, sunMu, fineMin, fineMax, fineSampleCount);
+	TransferPlan fine = ScanTOFRange(shipPos, shipVel, target, sunPos, sunVel, sunMu, fineMin, fineMax, fineSampleCount);
 	return fine.valid ? fine : coarse;
 }
+
 
 vector<Vector2> PredictTransferPath(Vector2 pos, Vector2 vel, Vector2 sunPos, float sunMu, float tof, int steps)
 {

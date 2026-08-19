@@ -29,7 +29,7 @@ void APlanet::Render(HDC hdc)
 
 
 	Camera& cam = _ownerWorld->GetCamera();
-	Vector2 screenPos = cam.WorldToScreen(GetCenterPos());
+	Vector2 screenPos = cam.WorldToScreenSolar(GetCenterPos());
 	float r = cam.WorldToScreenScale(_bodyRadius);
 
 	Super::Render(hdc);
@@ -54,6 +54,13 @@ void APlanet::OnGUI()
 	}
 }
 
+void APlanet::RecordTrailPoint(float z)
+{
+	_trail.push_back(TrailPoint{ GetCenterPos(), z });
+	if (_trail.size() > kMaxTrailPoints)
+		_trail.pop_front();
+}
+
 void APlanet::Setup(string name, Vector2 orbitCenter, float semiMajorAxis, float orbitSpeed, float mu, float bodyRadius,
 	float initialAngle, float eccentricity, float argPeriapsis)
 {
@@ -75,10 +82,23 @@ void APlanet::Setup(string name, Vector2 orbitCenter, float semiMajorAxis, float
 	_circleCollider->SetRadius(_bodyRadius);
 }
 
+void APlanet::SetOrbitCenter(Vector2 center, class APlanet* centerBody)
+{
+	_orbitCenter = center;
+	_orbitCenterBody = centerBody;
+}
+
 Vector2 APlanet::GetVelocity() const
 {
 	float E = SolveKeplerEquation(_meanAnomaly, _eccentricity);
-	return ComputeVelocityAtEccentricAnomaly(E);
+	Vector2 relativeVel = ComputeVelocityAtEccentricAnomaly(E);
+
+	if (_orbitCenterBody)
+	{
+		relativeVel += _orbitCenterBody->GetVelocity();
+	}
+
+	return relativeVel;
 }
 
 Vector2 APlanet::GetAcceleration() const
@@ -92,7 +112,12 @@ Vector2 APlanet::GetAcceleration() const
 	// 기존 원운동 근사(ω²·(center-pos))보다 오히려 더 정확해짐
 
 	float muEff = _orbitSpeed * _orbitSpeed * _semiMajorAxis * _semiMajorAxis * _semiMajorAxis;
-	return toCenter * (muEff / (r2 * r));
+	Vector2 accel = toCenter * (muEff / (r2 * r));
+
+	if (_orbitCenterBody)
+		accel += _orbitCenterBody->GetAcceleration();
+
+	return accel;
 }
 
 Vector2 APlanet::GetFuturePos(float t) const
@@ -123,6 +148,29 @@ vector<Vector2> APlanet::GetOrbitShape(int steps) const
 	{
 		float E = (2.f * 3.14159265f * i) / steps; // 케플러 방정식 안 풀고 E를 직접 훑음
 		points.push_back(ComputePositionAtEccentricAnomaly(E));
+	}
+
+	return points;
+}
+
+vector<OrbitShapePoint> APlanet::GetOrbitShapeTimed(int steps) const
+{
+	vector<OrbitShapePoint> points;
+	points.reserve(steps + 1);
+
+	constexpr float kPi = 3.14159265f;
+	for (int i = 0; i <= steps; ++i)
+	{
+		float M = (2.f * kPi * i) / steps;        // 이번엔 E가 아니라 M을 직접 훑는다 (M이 시간과 선형이라)
+		float E = SolveKeplerEquation(M, _eccentricity);
+
+		float dM = M - _meanAnomaly;
+		while (dM > kPi)  dM -= 2.f * kPi;         // -π ~ π로 wrap (가장 가까운 과거/미래로)
+		while (dM < -kPi) dM += 2.f * kPi;
+
+		float t = (_orbitSpeed != 0.f) ? (dM / _orbitSpeed) : 0.f;
+
+		points.push_back({ ComputePositionAtEccentricAnomaly(E), t });
 	}
 
 	return points;

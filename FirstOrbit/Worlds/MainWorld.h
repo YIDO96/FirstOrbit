@@ -32,6 +32,9 @@ public:
 	// 빈 공간 클릭 등으로 선택/픽 상태를 전부 해제한다 (버튼도 다시 전부 활성으로 되돌림).
 	void DeselectActor();
 
+	//Vector2 ProjectForView(Vector2 worldPos) const;
+	//Vector2 ProjectForView(Vector2 worldPos, float z) const;
+
 protected:
 	virtual void OnSceneGUI() override;
 	virtual wstring GetResourceSectionName() const { return L"MainWorld"; }
@@ -66,4 +69,11 @@ private:
 	float _transferApoapsis = 0.f;
 
 	float _lastDeltaTime = 0.f;
+
+	//float _galacticZ = 0.f;				// 태양계 전체가 은하 진행방향으로 이동한 거리
+	float _galacticDriftSpeed = 300.f;	// 초당 진행 속도
+	//bool _isSideView = false;
+
+	float _trailRecordTimer = 0.f;
+	static constexpr float kTrailRecordInterval = 0.1f;
 };
