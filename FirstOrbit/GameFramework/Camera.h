@@ -22,6 +22,8 @@ public:
 	void UpdateDrag();
 	void UpdateFollow(float deltaTime);
 
+	void AddShake(float duration, float magnitude);
+
 	void SetPosition(Vector2 pos) { _position = pos; }
 	void SetZoom(float z) { _targetZoom = z; }
 	void SetZoomImmediate(float z) { _zoom = _targetZoom = z; }
@@ -40,7 +42,7 @@ public:
 
 private:
 	void UpdateViewMatrix();
-
+	void UpdateShake(float deltaTime);
 
 
 
@@ -75,4 +77,10 @@ private:
 	float _wheelStep = 0.15f;
 
 	bool _isControll = true;
+
+	// Shake
+	float _shakeDuration = 0.f;
+	float _shakeTimer = 0.f;
+	float _shakeMagnitude = 0.f;
+	Vector2 _shakeOffset;
 };

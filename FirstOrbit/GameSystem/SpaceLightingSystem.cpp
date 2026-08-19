@@ -40,6 +40,9 @@ bool SpaceLightingSystem::Initialize(HDC hdc, int width, int height)
 	_cloudGlow = new Glow();
 	_cloudGlow->Create(200, RGB(255, 255, 255));
 
+	_smokeGlow = new Glow();
+	_smokeGlow->Create(220, RGB(130, 130, 130));
+
 	return true;
 }
 
@@ -59,6 +62,7 @@ void SpaceLightingSystem::Release()
 	delete _engineGlow;   _engineGlow = nullptr;
 	delete _accretionGlow; _accretionGlow = nullptr;
 	delete _cloudGlow; _cloudGlow = nullptr;
+	delete _smokeGlow; _smokeGlow = nullptr;
 }
 
 void SpaceLightingSystem::GenerateStarfield(int starCount, float range)
@@ -222,7 +226,10 @@ void SpaceLightingSystem::UpdateAndRenderParticle(float deltaTime)
 		float currentRadius = it->radius * (2.f - lifeRatio);		
 		BYTE currentAlpha = (BYTE)(255.f * (lifeRatio * lifeRatio)); // 제곱 감쇠
 
-		_engineGlow->Render(_hDIBDC, it->pos, currentRadius, currentAlpha);
+		//_engineGlow->Render(_hDIBDC, it->pos, currentRadius, currentAlpha);
+		Glow* glow = (it->type == EParticleType::Smoke) ? _smokeGlow : _engineGlow;
+		glow->Render(_hDIBDC, it->pos, currentRadius, currentAlpha);
+
 
 		++it;
 	}
@@ -236,14 +243,22 @@ void SpaceLightingSystem::ApplyPlanetShadow(const Vector2& sunPos, const Vector2
 
 	Vector2 dir = sunToPlanet / distSunPlanet; // 주축 단위 벡터
 
-	// 그림자가 뻗어나가는 먼 쪽 끝점을 화면 대각선 길이만큼 잡고, 그 주변만 스캔한다
-	float maxShadowLen = sqrtf((float)(_width * _width + _height * _height));
-	Vector2 farPoint = planetPos + dir * maxShadowLen;
+	constexpr float kSpreadRate = 0.15f;   // 거리 1당 그림자 폭이 얼마나 넓어질지 (부채꼴 벌어지는 정도)
+	constexpr float kFadeRange = 800.f;   // 이 거리를 넘어서면 그림자가 거의 안 보임
+	constexpr float kMaxDarken = 0.85f;   // 그림자 제일 진한 지점에서 밝기를 얼마나 깎을지
+	constexpr float kEdgeSoftness = 15.f;    // 부채꼴 가장자리를 부드럽게 만드는 폭(px)
 
-	int minX = (int)max(0.f, min(planetPos.x, farPoint.x) - planetRadius);
-	int maxX = (int)min((float)_width, max(planetPos.x, farPoint.x) + planetRadius);
-	int minY = (int)max(0.f, min(planetPos.y, farPoint.y) - planetRadius);
-	int maxY = (int)min((float)_height, max(planetPos.y, farPoint.y) + planetRadius);
+	Vector2 farPoint = planetPos + dir * kFadeRange;
+	float maxHalfWidth = planetRadius + kFadeRange * kSpreadRate;
+
+	//// 그림자가 뻗어나가는 먼 쪽 끝점을 화면 대각선 길이만큼 잡고, 그 주변만 스캔한다
+	//float maxShadowLen = sqrtf((float)(_width * _width + _height * _height));
+	//Vector2 farPoint = planetPos + dir * maxShadowLen;
+
+	int minX = (int)max(0.f, min(planetPos.x, farPoint.x) - maxHalfWidth);
+	int maxX = (int)min((float)_width, max(planetPos.x, farPoint.x) + maxHalfWidth);
+	int minY = (int)max(0.f, min(planetPos.y, farPoint.y) - maxHalfWidth);
+	int maxY = (int)min((float)_height, max(planetPos.y, farPoint.y) + maxHalfWidth);
 
 	for (int y = minY; y < maxY; ++y)
 	{
@@ -252,20 +267,40 @@ void SpaceLightingSystem::ApplyPlanetShadow(const Vector2& sunPos, const Vector2
 			Vector2 sunToPixel = Vector2((float)x, (float)y) - sunPos;
 			float proj = sunToPixel.Dot(dir);
 
-			//  행성 뒤쪽 영역에 있는지 판병
-			if (proj > distSunPlanet)
-			{
-				// |sunToPixel|^2 = proj^2 + prepDist^2;
-				float perpDist = sqrt(max(0.f, sunToPixel.LengthSquared() - proj * proj));
+			//  행성 앞쪽은 제외
+			if (proj <= distSunPlanet) continue;
 
-				if (perpDist < planetRadius)
-				{
-					int idx = (y * _width + x) * 4;
-					_pPixels[idx]		= (BYTE)(_pPixels[idx]		* 0.15f);
-					_pPixels[idx + 1]	= (BYTE)(_pPixels[idx + 1]	* 0.15f);
-					_pPixels[idx + 2]	= (BYTE)(_pPixels[idx + 2]	* 0.15f);
-				}
-			}
+			float shadowDist = proj - distSunPlanet;
+			float halfWidth = planetRadius + shadowDist * kSpreadRate;
+
+			float perpDist = sqrt(max(0.f, sunToPixel.LengthSquared() - proj * proj));
+			if (perpDist >= halfWidth) continue;
+
+			float distFade = 1.f - clamp(shadowDist / kFadeRange, 0.f, 1.f); // 멀수록 옅어지게
+			float edgeFade = 1.f - clamp((perpDist - (halfWidth - kEdgeSoftness)) / kEdgeSoftness, 0.f, 1.f); // 가장자리 부드럽게
+
+			float darken = 1.f - kMaxDarken * distFade * edgeFade;
+
+			int idx = (y * _width + x) * 4;
+
+			_pPixels[idx] = (BYTE)(_pPixels[idx] * darken);
+			_pPixels[idx + 1] = (BYTE)(_pPixels[idx + 1] * darken);
+			_pPixels[idx + 2] = (BYTE)(_pPixels[idx + 2] * darken);
+
+
+			//if (proj > distSunPlanet)
+			//{
+			//	// |sunToPixel|^2 = proj^2 + prepDist^2;
+			//	float perpDist = sqrt(max(0.f, sunToPixel.LengthSquared() - proj * proj));
+			//
+			//	if (perpDist < planetRadius)
+			//	{
+			//		int idx = (y * _width + x) * 4;
+			//		_pPixels[idx]		= (BYTE)(_pPixels[idx]		* 0.15f);
+			//		_pPixels[idx + 1]	= (BYTE)(_pPixels[idx + 1]	* 0.15f);
+			//		_pPixels[idx + 2]	= (BYTE)(_pPixels[idx + 2]	* 0.15f);
+			//	}
+			//}
 		}
 	}
 }
@@ -437,4 +472,25 @@ void SpaceLightingSystem::AddBlackHoleFallingStars(Vector2 center, int count, fl
 void SpaceLightingSystem::RenderCloud(const Vector2& pos, float radius, BYTE intensity)
 {
 	_cloudGlow->Render(_hDIBDC, pos, radius, intensity);
+}
+
+void SpaceLightingSystem::SpawnEngineSmoke(const Vector2& pos, const Vector2& dir)
+{
+	EngineParticle p;
+	p.pos = pos;
+
+	float spread = ((rand() % 100) / 100.f - .5f) * 1.2f;         // 화염보다 훨씬 넓게 퍼짐
+	p.velocity = (dir + Vector2(spread, spread)) * (30.f + (rand() % 40));   // 화염보다 훨씬 느림
+	p.radius = 16.f + (rand() % 14);                               // 화염보다 큼
+	p.maxLife = 1.f + (rand() % 100) / 100.f;                      // 1~2초 (화염은 0.4~0.7초)
+	p.currentLife = p.maxLife;
+	p.intensity = 255;
+	p.type = EParticleType::Smoke;
+
+	_particles.push_back(p);
+}
+
+void SpaceLightingSystem::RenderSmoke(const Vector2& pos, float radius, BYTE intensity)
+{
+	_smokeGlow->Render(_hDIBDC, pos, radius, intensity);
 }

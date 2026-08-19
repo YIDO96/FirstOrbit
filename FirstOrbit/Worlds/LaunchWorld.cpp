@@ -72,6 +72,17 @@ void LaunchWorld::Update(float deltaTime)
 	for (CloudPuff& cloud : _clouds)
 		cloud.pos.x += _cloudDriftSpeed * deltaTime;
 
+	for (auto it = _launchSmoke.begin(); it != _launchSmoke.end(); )
+	{
+		it->currentLife -= deltaTime;
+		if (it->currentLife <= 0.f) { it = _launchSmoke.erase(it); continue; }
+
+		it->pos += it->velocity * deltaTime;
+		it->velocity *= powf(0.3f, deltaTime);   // 초당 30%로 감속 (관성으로 퍼지다 서서히 멈춤)
+
+		++it;
+	}
+
 	if (not _cameraFollowStarted)
 	{
 		Vector2 shipScreenPos = _camera.WorldToScreen(_ship->GetCenterPos());
@@ -96,6 +107,19 @@ void LaunchWorld::Update(float deltaTime)
 		{
 			SOUND.Play(L"S_SpaceshipLaunch");
 			_isPlayLaunchSound = true;
+
+			Vector2 padPos(0.f, -10.f);   // Enter()의 우주선 초기 위치 = 발사대 지면
+			for (int i = 0; i < 40; ++i)
+			{
+				SmokePuff p;
+				float side = (rand() % 2 == 0 ? 1.f : -1.f);
+				p.pos = padPos + Vector2((float)(rand() % 80 - 40), (float)(rand() % 20));
+				p.velocity = Vector2(side * (30.f + rand() % 70), 10.f + rand() % 20);   // 좌우로 퍼지며 살짝만 위로
+				p.radius = 50.f + rand() % 50;
+				p.maxLife = 4.f + (rand() % 300) / 100.f;   // 4~7초, 꽤 오래 남아있음
+				p.currentLife = p.maxLife;
+				_launchSmoke.push_back(p);
+			}
 		}
 
 		_altitude = -_ship->GetCenterPos().y;   // 위가 -y
@@ -115,6 +139,11 @@ void LaunchWorld::Update(float deltaTime)
 
 		float density = expf(-_altitude / GAtmosphereScaleHeight);
 		_camera.SetZoom(.3f + (2.f - .3f) * density);
+
+		if (_ship->GetIsThrusting())
+		{
+			_camera.AddShake(0.1f, 1.f * density); // 저고도일수록 세개, 고고도일수록 잦아드는 방식
+		}
 
 	}
 
@@ -147,20 +176,8 @@ void LaunchWorld::Update(float deltaTime)
 }
 void LaunchWorld::Render(HDC hdc)
 {
-	// TODO(대기권 연출):
-	// 1) altitude 0 → 1000(핸드오프 고도) 사이를 0~1로 정규화
 	float normalizedAltitude = Normalize(_altitude, 0.f, 1000.f);
-	// 2) 하늘색을 파랑(RGB(135,206,235) 같은) → 검정으로 보간해서
-	//    FillRect(hdc, 화면전체Rect, 그색으로만든브러시) 로 배경을 채우기
-	//    (Super::Render(hdc)보다 먼저 그려야 그 위에 행성/우주선이 올라감)
 
-	//float density = expf(-_altitude / GAtmosphereScaleHeight);
-	//RECT back{ 0, 0, GWinSizeX, GWinSizeY };
-	////COLORREF backColor = LerpColor(RGB(135, 206, 235), RGB(0, 0, 0), normalizedAltitude);
-	//COLORREF backColor = ComputeRayleighSkyColor(density);
-	//HBRUSH backBrush = ::CreateSolidBrush(backColor);
-	//::FillRect(hdc, &back, backBrush);
-	//::DeleteObject(backBrush);
 	float density = expf(-_altitude / GAtmosphereScaleHeight);
 	GetAtmosphereDensity(hdc, _altitude);
 
@@ -185,14 +202,34 @@ void LaunchWorld::Render(HDC hdc)
 		_lightingSystem->RenderCloud(screenPos, screenRadius, cloudIntensity);
 	}
 
+	for (const SmokePuff& p : _launchSmoke)
+	{
+		Vector2 screenPos = _camera.WorldToScreen(p.pos);
+		float lifeRatio = p.currentLife / p.maxLife;
+		float screenRadius = p.radius * (1.6f - lifeRatio) * _camera.GetZoom();   // 태어날 때 작다가 점점 커짐
+		BYTE alpha = (BYTE)(220.f * lifeRatio);   // 수명 다할수록 옅어짐
+		_lightingSystem->RenderSmoke(screenPos, screenRadius, alpha);
+	}
+
+
 	if (_ship->GetIsThrusting())
 	{
 		Vector2 enginePos = _ship->GetCenterPos() - _ship->GetForwardDir() * 12.f;   // 선체 뒤쪽(엔진 위치)
-		_lightingSystem->SpawnEngineParticle(_camera.WorldToScreen(enginePos), -_ship->GetForwardDir());
+		Vector2 dir = -_ship->GetForwardDir();
+
+		_lightingSystem->SpawnEngineParticle(_camera.WorldToScreen(enginePos), dir);
+		if (_altitude < 200.f)
+		{
+			_lightingSystem->SpawnEngineSmoke(_camera.WorldToScreen(enginePos), dir);
+		}
+		
 	}
 	_lightingSystem->UpdateAndRenderParticle(_lastDeltaTime);
 
 	_lightingSystem->EndRender(hdc);
+
+
+
 
 	// 바닥선 (월드 y=0, 좌우로 길게)
 	Vector2 left = _camera.WorldToScreen(Vector2(-5000.f, 0.f));

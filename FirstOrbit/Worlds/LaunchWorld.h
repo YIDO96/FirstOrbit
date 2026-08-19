@@ -8,6 +8,15 @@ struct CloudPuff
 	float radius;
 };
 
+struct SmokePuff
+{
+	Vector2 pos;
+	Vector2 velocity;
+	float radius;
+	float maxLife;
+	float currentLife;
+};
+
 
 class LaunchWorld : public World
 {
@@ -52,4 +61,7 @@ private:
 
 	vector<CloudPuff> _clouds;
 	float _cloudDriftSpeed = 0.f; // 초당 이동량
+
+	vector<SmokePuff> _launchSmoke;
+
 };

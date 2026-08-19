@@ -17,6 +17,8 @@ void Camera::Init(int width, int height)
 
 void Camera::Update(float deltaTime)
 {
+	UpdateShake(deltaTime);
+
 	UpdateFollow(deltaTime);
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -39,12 +41,27 @@ void Camera::Update(float deltaTime)
 }
 void Camera::UpdateViewMatrix()
 {
-	_view = _view.Translate(_half) * 
+	_view = _view.Translate(_half + _shakeOffset) *
 			_view.Scale(_zoom) * 	
 			_view.Rotate(_rotation + _manualRotation) *	
 			_view.Translate(-_position);
 
 	_invView = _view.Inverse();
+}
+
+void Camera::UpdateShake(float deltaTime)
+{
+	if (_shakeTimer <= 0.f)
+	{
+		_shakeOffset = Vector2();
+		return;
+	}
+
+	_shakeTimer -= deltaTime;
+	float ratio = max(_shakeTimer / _shakeDuration, 0.f); // 1 -> 0 감쇠
+
+	float angle = (float)(rand() % 360) * (3.141592f / 180.f);
+	_shakeOffset = Vector2(cosf(angle), sinf(angle)) * (_shakeMagnitude * ratio);
 }
 
 void Camera::AddZoom()
@@ -114,6 +131,13 @@ void Camera::UpdateFollow(float deltaTime)
 	_position = Vector2::Lerp(_position, _targetPosition, 1.f - a);   // 위치: 선형
 	_rotation = LerpAngle(_rotation, _targetRotation, 1.f - a);       // 각도: 최단경로
 	// 줌은 이미 UpdateZoom()에서 로그 보간 중
+}
+
+void Camera::AddShake(float duration, float magnitude)
+{
+	_shakeDuration = duration;
+	_shakeTimer = duration;
+	_shakeMagnitude = magnitude;
 }
 
 

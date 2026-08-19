@@ -1,5 +1,11 @@
 #pragma once
 
+enum class EParticleType
+{
+	Engine,
+	Smoke
+};
+
 struct EngineParticle
 {
 	Vector2		pos;
@@ -8,6 +14,7 @@ struct EngineParticle
 	float		maxLife;
 	float		currentLife;
 	BYTE		intensity;
+	EParticleType type = EParticleType::Engine;
 };
 
 struct FallingStar
@@ -52,6 +59,10 @@ public:
 	// 저고도 구름
 	void RenderCloud(const Vector2& pos, float radius, BYTE intensity = 255);
 
+	// 엔진 연기
+	void SpawnEngineSmoke(const Vector2& pos, const Vector2& dir);
+	void RenderSmoke(const Vector2& pos, float radius, BYTE intensity = 255);
+
 
 	HDC GetBufferDC() const { return _hDIBDC; }
 	bool GetDebugLastGlowOk() const { return _debugLastGlowOk; }   // TEMP DEBUG
@@ -80,6 +91,7 @@ private:
 	Glow* _accretionGlow = nullptr; // 블랙홀 강착원반용
 	Glow* _blackholeGlow = nullptr;
 	Glow* _cloudGlow = nullptr;
+	Glow* _smokeGlow = nullptr;
 
 	// 엔진 파티클 컨테이너
 	vector<EngineParticle> _particles;
@@ -88,5 +100,7 @@ private:
 
 	bool _debugLastGlowOk = true;   // TEMP DEBUG
 	float _bhScreenRadius = 0.f;
+
+	
 };
 
