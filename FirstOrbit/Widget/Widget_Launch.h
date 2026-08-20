@@ -38,6 +38,11 @@ private:
 	UIText* _scoreText = nullptr;   // TODO: 점수 시스템 확정되면 실제 값 연결
 	UIText* _comboText = nullptr;   // TODO: 콤보 시스템 확정되면 실제 값 연결
 
+	// 키 조작 안내 (정적 텍스트 — 값 갱신 없음)
+	UIText* _keyGuideTitle = nullptr;
+	UIText* _keyLaunchText = nullptr;
+	UIText* _keyResetText = nullptr;
+
 	UISlider* _fuelSlider = nullptr;
 
 	UIButton* _FireButton = nullptr;

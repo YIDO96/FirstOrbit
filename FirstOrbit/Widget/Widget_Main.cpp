@@ -51,15 +51,25 @@ void Widget_Main::Init()
 			if (_ship) _ship->ReFuelFull();
 		});
 
+	// 액터 버튼 목록이 지금 무슨 역할인지 알려주는 라벨.
+	// 실제 문구는 UpdateActorButtonStates()가 우주선 픽 여부에 따라 다시 채운다.
+	_actorHeaderText = AddChild<UIText>();
+	_actorHeaderText->Init(EAnchor::LeftTop, EPivot::LeftTop, Vector2(20.f, kActorHeaderY), Vector2(0, 0),
+		L"클릭: 행성 피킹");
+	_actorHeaderText->SetFontSize(15.f);
+
+	// 배속 버튼 묶음 위 라벨
+	_speedLabelText = AddChild<UIText>();
+	_speedLabelText->Init(EAnchor::Top, EPivot::Top, Vector2(0.f, kSpeedLabelY), Vector2(0, 0), L"시간 배속");
+	_speedLabelText->SetFontSize(15.f);
+	_speedLabelText->SetTextColor(RGB(180, 180, 180));
+
 	//Vector2 smallBtnSize = btnSize * 0.7f;
 	Vector2 smallBtnSize = Vector2(btnSize.x * .5f, btnSize.y);
-	constexpr float kSpeedButtonSpacing = 90.f;
 	for (int i = 0; i < 4; ++i)
 	{
 		_speedButtons[i] = AddChild<UIButton>();
 		_speedButtons[i]->SetTexture(buttonTex);
-		constexpr float kSpeedButtonY = 190.f + kMaxActorButtons * 32.f + 20.f;   // = 562
-		float xOffset = (i) * kSpeedButtonSpacing;
 		_speedButtons[i]->Init(EAnchor::Top, EPivot::Top, Vector2(-90.f + i * 60.f, kSpeedButtonY), smallBtnSize);
 		_speedButtons[i]->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 3), smallBtnSize, kSpeedLabels[i], 14.f);
 
@@ -69,6 +79,13 @@ void Widget_Main::Init()
 				GAME.SetTimeScale(speed);
 			});
 	}
+
+	// 키 조작 안내 (MainWorld에서 실제로 쓰는 것만)
+	_keyGuideText = AddChild<UIText>();
+	_keyGuideText->Init(EAnchor::LeftTop, EPivot::LeftTop, Vector2(20.f, kKeyGuideY), Vector2(0, 0),
+		L"V : 사이드뷰 전환");
+	_keyGuideText->SetFontSize(15.f);
+	_keyGuideText->SetTextColor(RGB(150, 150, 150));
 
 	// Refuel이 연료바 위쪽으로 옮겨졌으니, 헤딩 인디케이터(우주선 방향)가 그 자리(우측 아래)로 들어간다.
 	_headingIndicator = AddChild<UIHeadingIndicator>();
@@ -111,7 +128,8 @@ void Widget_Main::ShowActorButtons(const vector<AActor*>& actors)
 	{
 		_actorButtons[i] = AddChild<UIButton>();
 		_actorButtons[i]->SetTexture(buttonTex);
-		_actorButtons[i]->Init(EAnchor::LeftTop, EPivot::LeftTop, Vector2(20.f, 190.f + i * 32.f), btnSize);
+		_actorButtons[i]->Init(EAnchor::LeftTop, EPivot::LeftTop,
+			Vector2(20.f, kActorButtonStartY + i * kActorButtonStepY), btnSize);
 
 		wstring text = StringToWString(actors[i]->GetName());
 		_actorButtons[i]->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 5), btnSize, text, 14.f);
@@ -157,7 +175,7 @@ void Widget_Main::ShowMoonButtons(const vector<pair<AActor*, AActor*>>& moonPare
 		_moonButtons[slot] = AddChild<UIButton>();
 		_moonButtons[slot]->SetTexture(buttonTex);
 		_moonButtons[slot]->Init(EAnchor::LeftTop, EPivot::LeftTop,
-			Vector2(20.f + btnSize.x + 8.f, 190.f + parentIndex * 32.f), smallSize);
+			Vector2(20.f + btnSize.x + 8.f, kActorButtonStartY + parentIndex * kActorButtonStepY), smallSize);
 
 		wstring text = StringToWString(moon->GetName());
 		_moonButtons[slot]->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 5), smallSize, text, 14.f);
@@ -174,6 +192,24 @@ void Widget_Main::ShowMoonButtons(const vector<pair<AActor*, AActor*>>& moonPare
 
 void Widget_Main::UpdateActorButtonStates(bool shipPicked, const vector<APlanet*>& reachable)
 {
+	// 지금 이 버튼 목록이 무슨 역할인지 한 줄로 알려준다.
+	// (SetText만 하면 폭이 예전 문구 기준으로 남아있어서, SetSize(0,0)으로 실측을 다시 시킨다 —
+	//  Widget_Launch::ReSizeStateText()가 쓰는 것과 같은 방식)
+	if (_actorHeaderText)
+	{
+		if (shipPicked)
+		{
+			_actorHeaderText->SetText(L"이동할 행성 선택");
+			_actorHeaderText->SetTextColor(RGB(255, 220, 120));   // 선택 대기 = 노란빛으로 강조
+		}
+		else
+		{
+			_actorHeaderText->SetText(L"클릭: 행성 피킹");
+			_actorHeaderText->SetTextColor(RGB(180, 180, 180));
+		}
+		_actorHeaderText->SetSize(0, 0);
+	}
+
 	for (int i = 0; i < _actorButtonCount; ++i)
 	{
 		AActor* actor = _actorButtonTargets[i];

@@ -32,6 +32,20 @@ public:
 
 public:
 	static constexpr int kLineCount = 5;
+
+private:
+	// ---- 사이드 패널 세로 레이아웃 ----
+	// 버튼 위치를 Init()/ShowActorButtons()/ShowMoonButtons() 세 곳에서 각자 계산하고 있었어서,
+	// 하나를 옮기면 나머지가 어긋났다. 기준값을 여기 한 곳에만 두고 전부 여기서 파생시킨다.
+	static constexpr int   kMaxActorButtons   = 11;     // 우주선 1 + 태양계(태양+행성8) 9 + 블랙홀 1
+	static constexpr float kActorHeaderY      = 186.f;  // 액터 버튼 목록 위 설명 라벨
+	static constexpr float kActorButtonStartY = 210.f;  // 첫 액터 버튼
+	static constexpr float kActorButtonStepY  = 32.f;   // 버튼 간 세로 간격
+	// 액터 버튼 목록이 끝나는 지점부터 배속 라벨 → 배속 버튼 → 키 안내 순으로 이어 붙인다.
+	static constexpr float kSpeedLabelY  = kActorButtonStartY + kMaxActorButtons * kActorButtonStepY + 12.f;
+	static constexpr float kSpeedButtonY = kSpeedLabelY + 26.f;
+	static constexpr float kKeyGuideY    = kSpeedButtonY + 45.f;
+
 private:
 	class ASpaceship* _ship = nullptr;
 
@@ -42,8 +56,13 @@ private:
 	UIHeadingIndicator* _headingIndicator = nullptr;
 
 	class UIButton* _speedButtons[4] = {};   // x1(해제) 포함 4개
+	UIText* _speedLabelText = nullptr;       // 배속 버튼 위 "시간 배속" 라벨
+	UIText* _keyGuideText = nullptr;         // 키 조작 안내
 
-	static constexpr int kMaxActorButtons = 11;   // 우주선 1 + 태양계(태양+행성8) 9 + 블랙홀 1
+	// 액터 버튼 목록이 지금 무슨 역할인지 알려주는 라벨.
+	// 우주선 픽 여부에 따라 문구/색이 바뀐다 (UpdateActorButtonStates에서 갱신).
+	UIText* _actorHeaderText = nullptr;
+
 	class UIButton* _actorButtons[kMaxActorButtons] = {};
 	class AActor* _actorButtonTargets[kMaxActorButtons] = {};   // 버튼 인덱스 → 액터 매핑
 	int _actorButtonCount = 0;

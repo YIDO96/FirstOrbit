@@ -51,6 +51,22 @@ void Widget_Launch::Init()
 	// TODO(스케치의 보라색 버튼 3개): 어떤 파워업/보너스가 될지 아직 결정 안 됨 — 기능 없는 빈 버튼을
 	// 미리 만들어두면 죽은 코드가 되니, 실제 기획이 정해지면 그때 여기에 추가할 것.
 
+	// 키 조작 안내. LaunchWorld는 Enter로 자동조종 발사가 걸리기 때문에(ASpaceship::Input()이
+	// _autoPilot이면 수동 입력을 무시함) 실제로 플레이어가 쓰는 키는 이 둘뿐이다.
+	_keyGuideTitle = AddChild<UIText>();
+	_keyGuideTitle->Init(EAnchor::LeftTop, EPivot::Left, Vector2(20.f, 230.f), Vector2(0, 0), L"조작");
+	_keyGuideTitle->SetFontSize(16.f);
+	_keyGuideTitle->SetTextColor(RGB(180, 180, 180));
+
+	_keyLaunchText = AddChild<UIText>();
+	_keyLaunchText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(28.f, 256.f), Vector2(0, 0), L"발사 : Enter");
+	_keyLaunchText->SetFontSize(16.f);
+
+	_keyResetText = AddChild<UIText>();
+	_keyResetText->Init(EAnchor::LeftTop, EPivot::Left, Vector2(28.f, 280.f), Vector2(0, 0), L"재시작 : R");
+	_keyResetText->SetFontSize(16.f);
+	_keyResetText->SetTextColor(RGB(150, 150, 150));
+
 	Texture* buttonTex = RESOURCE.GetTexture(L"ButtonBG");
 
 	//_FireButton = AddChild<UIButton>();
