@@ -47,6 +47,7 @@ private:
 	class Texture* _bg = nullptr;
 
 	vector<class APlanet*> _planets;
+	vector<class APlanet*> _moons;
 
 	AActor* _selected = nullptr;
 

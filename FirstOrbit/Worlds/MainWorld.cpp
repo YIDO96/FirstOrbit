@@ -108,6 +108,12 @@ void MainWorld::Enter()
 	_widget->ShowActorButtons(actorButtonList);
 	_widget->UpdateActorButtonStates(false, {});   // 시작 상태: 우주선 안 픽힘 → 전부 활성
 
+	// 위성 버튼은 부모 행성 버튼 옆에 붙여서 별도로 만든다 (아직 전이 대상은 아니고 포커스용).
+	vector<pair<AActor*, AActor*>> moonParentPairs;
+	for (APlanet* moon : _moons)
+		moonParentPairs.push_back({ moon, moon->GetOrbitCenterBody() });
+	_widget->ShowMoonButtons(moonParentPairs);
+
 	_widget->SetOnActorSelected([this](AActor* actor)
 		{
 			SelectActor(actor);
@@ -430,10 +436,14 @@ void MainWorld::SelectActor(AActor* actor)
 	if (_selected == _ship)
 	{
 		// 이미 우주선이 픽힌 상태에서 행성을 고르면 전이 시작. 행성이 아니면(블랙홀 등) 그냥 포커스.
+		// 위성은 아직 전이 대상이 아니라서(중첩 SOI 미지원) 여기서 걸러 포커스만 하게 흘려보낸다.
 		if (APlanet* planet = dynamic_cast<APlanet*>(actor))
 		{
-			StartTransfer(planet);
-			return;
+			if (not planet->IsMoon())
+			{
+				StartTransfer(planet);
+				return;
+			}
 		}
 	}
 
@@ -554,6 +564,7 @@ void MainWorld::InitPlanet()
 			moon->SetIsMoon(true);
 
 			_planets.push_back(moon);
+			_moons.push_back(moon);
 		}
 
 
@@ -610,6 +621,7 @@ void MainWorld::InitPlanet()
 		for (auto planet : _planets)
 		{
 			if (planet == _sun) continue;
+			if (planet->IsMoon()) continue;   // 위성은 이미 자기 행성(예: 지구)에 연결돼있음 — 태양으로 덮어쓰면 안 됨
 
 			planet->SetOrbitCenter(_sun->GetCenterPos(), _sun);
 		}

@@ -126,6 +126,52 @@ void Widget_Main::ShowActorButtons(const vector<AActor*>& actors)
 	UIBase::SetActiveUISpace(false);
 }
 
+void Widget_Main::ShowMoonButtons(const vector<pair<AActor*, AActor*>>& moonParentPairs)
+{
+	UIBase::SetActiveUISpace(true);
+
+	Texture* buttonTex = RESOURCE.GetTexture(L"ButtonBG");
+	Vector2 btnSize = buttonTex->GetTextureSize() * 0.8f;
+	Vector2 smallSize = btnSize;   // 지구 버튼과 비슷한 크기로
+
+	for (const auto& pair : moonParentPairs)
+	{
+		if (_moonButtonCount >= kMaxMoonButtons) break;
+
+		AActor* moon = pair.first;
+		AActor* parent = pair.second;
+
+		// 부모 행성이 몇 번째 행(버튼)에 있는지 찾아서, 그 행의 오른쪽에 작은 버튼을 붙인다.
+		int parentIndex = -1;
+		for (int i = 0; i < _actorButtonCount; ++i)
+		{
+			if (_actorButtonTargets[i] == parent)
+			{
+				parentIndex = i;
+				break;
+			}
+		}
+		if (parentIndex < 0) continue;   // 부모 버튼이 없으면(목록에서 빠졌으면) 스킵
+
+		int slot = _moonButtonCount++;
+		_moonButtons[slot] = AddChild<UIButton>();
+		_moonButtons[slot]->SetTexture(buttonTex);
+		_moonButtons[slot]->Init(EAnchor::LeftTop, EPivot::LeftTop,
+			Vector2(20.f + btnSize.x + 8.f, 190.f + parentIndex * 32.f), smallSize);
+
+		wstring text = StringToWString(moon->GetName());
+		_moonButtons[slot]->SetText(EParentAnchor::Center, EPivot::Center, Vector2(0, 5), smallSize, text, 14.f);
+
+		_moonButtonTargets[slot] = moon;
+		_moonButtons[slot]->SetOnClick([this, slot]()
+			{
+				if (_onActorSelected) _onActorSelected(_moonButtonTargets[slot]);
+			});
+	}
+
+	UIBase::SetActiveUISpace(false);
+}
+
 void Widget_Main::UpdateActorButtonStates(bool shipPicked, const vector<APlanet*>& reachable)
 {
 	for (int i = 0; i < _actorButtonCount; ++i)

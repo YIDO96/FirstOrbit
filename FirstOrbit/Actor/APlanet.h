@@ -37,6 +37,7 @@ public:
 
 	void SetIsMoon(bool isMoon) { _isMoon = isMoon; }
 	bool IsMoon() const { return _isMoon; }
+	class APlanet* GetOrbitCenterBody() const { return _orbitCenterBody; }
 
 	float GetBodyRadius() const { return _bodyRadius; }
 	float GetOrbitSpeed() const { return _orbitSpeed; }
