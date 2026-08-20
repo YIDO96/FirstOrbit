@@ -95,7 +95,7 @@ Vector2 UPhysicsComponent::ComputeAcceleration(const Vector2& pos, const Vector2
 	if (targetPlanet)
 	{
 		Vector2 targetPos = targetPlanet->GetFuturePos(targetTimeOffset);
-		Vector2 dir = targetPlanet->GetCenterPos() - pos;
+		Vector2 dir = targetPos - pos;
 		float r2 = dir.LengthSquared();
 		float r = sqrtf(r2);
 

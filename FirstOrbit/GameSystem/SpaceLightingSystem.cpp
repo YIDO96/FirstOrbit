@@ -251,10 +251,6 @@ void SpaceLightingSystem::ApplyPlanetShadow(const Vector2& sunPos, const Vector2
 	Vector2 farPoint = planetPos + dir * kFadeRange;
 	float maxHalfWidth = planetRadius + kFadeRange * kSpreadRate;
 
-	//// 그림자가 뻗어나가는 먼 쪽 끝점을 화면 대각선 길이만큼 잡고, 그 주변만 스캔한다
-	//float maxShadowLen = sqrtf((float)(_width * _width + _height * _height));
-	//Vector2 farPoint = planetPos + dir * maxShadowLen;
-
 	int minX = (int)max(0.f, min(planetPos.x, farPoint.x) - maxHalfWidth);
 	int maxX = (int)min((float)_width, max(planetPos.x, farPoint.x) + maxHalfWidth);
 	int minY = (int)max(0.f, min(planetPos.y, farPoint.y) - maxHalfWidth);
@@ -286,21 +282,6 @@ void SpaceLightingSystem::ApplyPlanetShadow(const Vector2& sunPos, const Vector2
 			_pPixels[idx] = (BYTE)(_pPixels[idx] * darken);
 			_pPixels[idx + 1] = (BYTE)(_pPixels[idx + 1] * darken);
 			_pPixels[idx + 2] = (BYTE)(_pPixels[idx + 2] * darken);
-
-
-			//if (proj > distSunPlanet)
-			//{
-			//	// |sunToPixel|^2 = proj^2 + prepDist^2;
-			//	float perpDist = sqrt(max(0.f, sunToPixel.LengthSquared() - proj * proj));
-			//
-			//	if (perpDist < planetRadius)
-			//	{
-			//		int idx = (y * _width + x) * 4;
-			//		_pPixels[idx]		= (BYTE)(_pPixels[idx]		* 0.15f);
-			//		_pPixels[idx + 1]	= (BYTE)(_pPixels[idx + 1]	* 0.15f);
-			//		_pPixels[idx + 2]	= (BYTE)(_pPixels[idx + 2]	* 0.15f);
-			//	}
-			//}
 		}
 	}
 }

@@ -14,7 +14,6 @@ void Camera::Init(int width, int height)
 	_position = Vector2();
 	_isControll = true;
 }
-
 void Camera::Update(float deltaTime)
 {
 	UpdateShake(deltaTime);
