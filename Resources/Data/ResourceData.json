@@ -3,7 +3,19 @@
     {
       "StartButton": { "fileName": "startButton.bmp", "transparent": [255, 0, 255]},
       "ExitButton": { "fileName": "exitButton.bmp", "transparent": [255, 0, 255]},
-      "ButtonBG": {"fileName": "ButtonBG.bmp", "transparent": [255, 0, 255]}
+      "ButtonBG": {"fileName": "ButtonBG.bmp", "transparent": [255, 0, 255]},
+      "Galaxy" : {"fileName": "Galaxy.bmp"},
+      "SpaceCockpit" : {"fileName": "SpaceCockpit.bmp", "transparent": [255, 0, 255]},
+      "Sun":  {"fileName":  "Sun.bmp", "transparent": [255, 0, 255]},
+      "Mercury": {"fileName": "Mercury.bmp", "transparent":[255, 0, 255]},
+      "Venus": {"fileName": "Venus.bmp", "transparent":[255, 0, 255]},
+      "Earth":  {"fileName":  "Earth.bmp", "transparent": [255, 0, 255]},
+      "Moon":  {"fileName":  "Moon.bmp", "transparent": [255, 0, 255]},
+      "Mars": {"fileName": "Mars.bmp", "transparent":[255, 0, 255]},
+      "Jupiter": {"fileName": "Jupiter.bmp", "transparent":[255, 0, 255]},
+      "Uranus": {"fileName": "Uranus.bmp", "transparent":[255, 0, 255]},
+      "Neptune": {"fileName": "Neptune.bmp", "transparent":[255, 0, 255]},
+      "Spaceship": {"fileName": "SpaceShip.bmp", "transparent": [255, 0, 255]}
     },
     "LaunchWorld":
     {
@@ -23,7 +35,8 @@
       "Uranus": {"fileName": "Uranus.bmp", "transparent":[255, 0, 255]},
       "Neptune": {"fileName": "Neptune.bmp", "transparent":[255, 0, 255]},
       "Spaceship": {"fileName": "SpaceShip.bmp", "transparent": [255, 0, 255]},
-      "ButtonBG": {"fileName": "ButtonBG.bmp", "transparent": [255, 0, 255]}
+      "ButtonBG": {"fileName": "ButtonBG.bmp", "transparent": [255, 0, 255]},
+      "Galaxy" : {"fileName": "Galaxy.bmp"}
     },
     "Sound":
     {
