@@ -162,6 +162,18 @@ void TitleWorld::Render(HDC hdc)
 			// 🎯 블랙홀 위치 추가 상향 조정 (Y축 22% -> 18% 지점으로 더 올려서 배치)
 			Vector2 galaxyCoreCenter = Vector2((float)GWinSizeX * 0.50f, (float)GWinSizeY * 0.18f);
 
+			// Galaxy.bmp 원본 이미지에서 실제로 가장 밝은 은하 중심부의 상대 좌표.
+			// (밝기 임계값 기준 무게중심으로 실측: 약 51.5%, 48.7% — 기하학적 정중앙(50%,50%)과
+			// 미세하게 어긋나 있는데, 이 오차를 그대로 두면 galaxyScale이 커질수록(계속 확대되는
+			// 연출이라) 화면상 오차도 같이 커져서 블랙홀 점이 은하 중심에서 점점 벌어져 보인다.
+			// destPos 계산에서 0.5f 대신 이 비율을 anchor로 써서, 스케일이 얼마가 되든 블랙홀이
+			// 항상 이미지의 실제 중심에 고정되도록 한다.
+			static const Vector2 kGalaxyCoreRatio = Vector2(0.5146f, 0.4866f);
+
+			// 은하 확대 속도. 블랙홀 등장 조건(아래 kBlackHoleStartScale)도 이 값 기준으로 계산되므로
+			// 여기서 하나만 바꾸면 확대 속도와 블랙홀 등장 시점이 같이 늦춰지거나 당겨진다.
+			constexpr float kScaleSpeed = 0.015f;
+
 			float galaxyScale = 1.0f;
 			Vector2 destSize = Vector2((float)GWinSizeX, (float)GWinSizeY);
 			Vector2 destPos = Vector2(0.f, (float)GWinSizeY * 0.25f - (destSize.y * 0.5f));
@@ -201,23 +213,32 @@ void TitleWorld::Render(HDC hdc)
 				srcH = galOrigSize.y * (0.35f + progress * 0.65f);
 
 				// 은하 확대 스케일 연산
-				constexpr float kScaleSpeed = 0.015f;
 				galaxyScale = 1.0f + (postTime * kScaleSpeed);
 
 				destSize = Vector2((float)GWinSizeX, (float)GWinSizeY) * galaxyScale;
-				destPos = galaxyCoreCenter - (destSize * 0.5f);
+				destPos = galaxyCoreCenter - Vector2(destSize.x * kGalaxyCoreRatio.x, destSize.y * kGalaxyCoreRatio.y);
 			}
 
 			// 은하 배경 렌더링
 			galaxy->Render(hdc, destPos, Vector2(srcX, srcY), Vector2(srcW, srcH), destSize);
 
 			// -----------------------------------------------------------------
-			// 🕳️ 블랙홀 렌더링 (행성 이탈 완료 후 20초 뒤 등장)
+			// 🕳️ 블랙홀 렌더링 (시간이 아니라, 은하의 밝은 부분이 창문을 다 덮었을 때 등장)
 			// -----------------------------------------------------------------
-			constexpr float kBlackHoleStartDelay = 20.0f; // 💡 20초 추가 지연 설정
-			if (spaceTime >= (kAllPlanetsEndTime + kBlackHoleStartDelay))
+			// 코크핏 창문(SpaceCockpit.bmp의 투명 구멍)을 600x800 화면 기준 사각형으로 실측:
+			// x=[34,565], y=[46,303]. 이 네 모서리를 은하 텍스처 좌표로 역변환했을 때 은하
+			// 중심(kGalaxyCoreRatio)에서 가장 멀리 떨어지는 모서리(좌하단)까지의 거리가
+			// galaxyScale=1 기준 약 740 텍스처px이다. "밝다"고 볼 수 있는 반경을
+			// kGalaxyBrightRadiusPx로 두면, 그 거리가 밝은 반경 안으로 들어오는 시점
+			// (galaxyScale >= kWindshieldCornerDistPx / kGalaxyBrightRadiusPx)부터
+			// 창문 전체가 밝은 부분으로 덮인 것으로 본다.
+			constexpr float kWindshieldCornerDistPx = 740.f;
+			constexpr float kGalaxyBrightRadiusPx = 260.f;   // 값을 키우면 더 늦게, 줄이면 더 일찍 등장
+			constexpr float kBlackHoleStartScale = kWindshieldCornerDistPx / kGalaxyBrightRadiusPx;
+
+			if (galaxyScale >= kBlackHoleStartScale)
 			{
-				float blackHoleTime = spaceTime - (kAllPlanetsEndTime + kBlackHoleStartDelay);
+				float blackHoleTime = (galaxyScale - kBlackHoleStartScale) / kScaleSpeed;
 
 				// 초기 아주 작은 점(1.0px)에서 시작하여 은하 스케일 증가에 따라 천천히 확대
 				constexpr float kBaseDotRadius = 1.0f;
@@ -225,17 +246,24 @@ void TitleWorld::Render(HDC hdc)
 
 				float blackHoleRadius = kBaseDotRadius + (blackHoleTime * kGrowthFactor * 0.015f);
 
+				// 은하 중심(가장 밝은 지점)이랑 완전히 겹쳐 그리면, 검은 점이 작을 때는 밝은 빛에
+				// 파묻혀서 거의 안 보인다. 그래서 은하 이미지는 그대로 두고, 블랙홀만 중심에서
+				// 살짝 위쪽에 고정 오프셋을 줘서 그린다 (galaxyCoreCenter 자체는 안 건드림 —
+				// 저건 kGalaxyCoreRatio 앵커라서 건드리면 스케일 커질 때 다시 어긋나기 시작함).
+				constexpr float kBlackHoleOffsetY = -40.f;   // 화면 기준 위로 40px. 더 올리려면 음수 키우기
+
 				HBRUSH blackBrush = ::CreateSolidBrush(RGB(0, 0, 0));
 				HPEN blackPen = ::CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 
 				HBRUSH oldBrush = (HBRUSH)::SelectObject(hdc, blackBrush);
 				HPEN oldPen = (HPEN)::SelectObject(hdc, blackPen);
 
-				// 조정된 Y축 18% 높이(galaxyCoreCenter)에 블랙홀 렌더링
+				// 조정된 Y축 18% 높이(galaxyCoreCenter) + 위쪽 오프셋에 블랙홀 렌더링
+				float blackHoleCenterY = galaxyCoreCenter.y + kBlackHoleOffsetY;
 				int left = static_cast<int>(galaxyCoreCenter.x - blackHoleRadius);
-				int top = static_cast<int>(galaxyCoreCenter.y - blackHoleRadius);
+				int top = static_cast<int>(blackHoleCenterY - blackHoleRadius);
 				int right = static_cast<int>(galaxyCoreCenter.x + blackHoleRadius);
-				int bottom = static_cast<int>(galaxyCoreCenter.y + blackHoleRadius);
+				int bottom = static_cast<int>(blackHoleCenterY + blackHoleRadius);
 
 				::Ellipse(hdc, left, top, right, bottom);
 
